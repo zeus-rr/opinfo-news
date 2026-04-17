@@ -13,12 +13,47 @@
 
 <style>
 body { font-family: Arial; background:#f1f5f9; padding:15px;}
-button { padding:10px; margin:5px;}
-.item { background:white; padding:10px; margin:5px; border-radius:8px;}
+
+input { padding:10px; margin:5px; width:250px; }
+
+button { padding:10px; margin:5px; }
+
+.item {
+    background:white;
+    padding:10px;
+    margin:5px;
+    border-radius:8px;
+}
+
+.item.negativa {
+    border-left: 5px solid #dc2626;
+    background: #ffe5e5;
+}
+
+#loginScreen {
+    position:fixed;
+    inset:0;
+    background:white;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    z-index:9999;
+}
 </style>
 </head>
 
 <body>
+
+<div id="loginScreen">
+    <h2>Acesso ao Sistema</h2>
+
+    <input id="nome" placeholder="Seu nome"><br>
+    <input id="telefone" placeholder="Telefone"><br>
+    <input id="email" placeholder="Email"><br>
+
+    <button onclick="liberarAcesso()">Entrar</button>
+</div>
 
 <h2>🔥 OpInfo News</h2>
 
@@ -28,8 +63,38 @@ button { padding:10px; margin:5px;}
 <div id="list"></div>
 
 <script>
+
+const EMAIL_AUTORIZADO = "segurologin@gmail.com";
+
 let noticiasVistas = new Set();
 const som = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+
+window.onload = () => {
+    const user = localStorage.getItem("usuario");
+    if(user){
+        document.getElementById("loginScreen").style.display = "none";
+    }
+};
+
+function liberarAcesso(){
+    const nome = document.getElementById("nome").value;
+    const telefone = document.getElementById("telefone").value;
+    const email = document.getElementById("email").value;
+
+    if(!nome || !telefone || !email){
+        alert("Preencha todos os campos");
+        return;
+    }
+
+    if(email !== EMAIL_AUTORIZADO){
+        alert("Acesso não autorizado");
+        return;
+    }
+
+    localStorage.setItem("usuario", JSON.stringify({nome, telefone, email}));
+
+    document.getElementById("loginScreen").style.display = "none";
+}
 
 async function pedirPermissao() {
     if ("Notification" in window) {
@@ -71,14 +136,36 @@ async function ciclo(){
 
         noticiasVistas.add(item.link);
 
+        const termosNegativos = [
+            "crime","fraude","preso","acusação","investigação",
+            "corrupção","escândalo","denúncia","justiça","réu"
+        ];
+
+        const titulo = item.title.toLowerCase();
+        const isNegativa = termosNegativos.some(t => titulo.includes(t));
+
+        const data = new Date(item.pubDate);
+
         const div = document.createElement("div");
-        div.className = "item";
-        div.innerHTML = `<a href="${item.link}" target="_blank">${item.title}</a>`;
+        div.className = "item " + (isNegativa ? "negativa" : "");
+
+        div.innerHTML = `
+            <a href="${item.link}" target="_blank">${item.title}</a>
+            <div style="font-size:12px; color:#555;">
+                📅 ${data.toLocaleDateString('pt-BR')}
+                ⏰ ${data.toLocaleTimeString('pt-BR')}
+            </div>
+        `;
+
         document.getElementById("list").prepend(div);
 
         som.play().catch(()=>{});
 
-        notificar("🚨 Nova notícia", item.title);
+        if(isNegativa){
+            notificar("🚨 ALERTA NEGATIVO", item.title);
+        } else {
+            notificar("📰 Nova notícia", item.title);
+        }
     });
 }
 
@@ -110,6 +197,7 @@ window.addEventListener("beforeinstallprompt", (e) => {
 if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js");
 }
+
 </script>
 
 </body>
