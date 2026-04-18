@@ -9,8 +9,6 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#2563eb">
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <style>
 body { font-family: Arial; background:#f1f5f9; padding:15px;}
 
@@ -69,6 +67,7 @@ const EMAIL_AUTORIZADO = "segurologin@gmail.com";
 let noticiasVistas = new Set();
 const som = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
 
+/* ================= LOGIN ================= */
 window.onload = () => {
     const user = localStorage.getItem("usuario");
     if(user){
@@ -92,10 +91,10 @@ function liberarAcesso(){
     }
 
     localStorage.setItem("usuario", JSON.stringify({nome, telefone, email}));
-
     document.getElementById("loginScreen").style.display = "none";
 }
 
+/* ================= NOTIFICAÇÃO ================= */
 async function pedirPermissao() {
     if ("Notification" in window) {
         await Notification.requestPermission();
@@ -115,6 +114,7 @@ function notificar(titulo, corpo) {
     }
 }
 
+/* ================= NOTÍCIAS ================= */
 async function fetchNoticias(alvo){
     const url = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(
         `https://news.google.com/rss/search?q=${encodeURIComponent(alvo)}&hl=pt-BR&gl=BR&ceid=BR:pt`
@@ -125,57 +125,106 @@ async function fetchNoticias(alvo){
     return data.items || [];
 }
 
+/* ================= REDES SOCIAIS ================= */
+function gerarLinksSociais(alvo){
+    return [
+        {
+            titulo: `📸 Instagram: ${alvo}`,
+            link: `https://www.instagram.com/explore/tags/${alvo.replace(/\s+/g, "")}/`
+        },
+        {
+            titulo: `📘 Facebook: ${alvo}`,
+            link: `https://www.facebook.com/search/top?q=${encodeURIComponent(alvo)}`
+        },
+        {
+            titulo: `🐦 X (Twitter): ${alvo}`,
+            link: `https://x.com/search?q=${encodeURIComponent(alvo)}&src=typed_query`
+        }
+    ];
+}
+
+/* ================= ANÁLISE NEGATIVA ================= */
+function ehNegativa(texto){
+    const termos = [
+        "processo", "crime", "fraude", "negativa", "justiça", "investigação", "mentira", "homofobia", "feminicidio", "homicidio", "preconceito", "acusação", "preso", "irregular", "denúncia", "polícia", "réu", "corrupção", "bloqueio", "cpi", "stf", "escândalo"
+    ];
+
+    texto = texto.toLowerCase();
+    return termos.some(t => texto.includes(t));
+}
+
+/* ================= RENDER ================= */
+function renderItem(titulo, link, dataISO, isNegativa){
+    const div = document.createElement("div");
+    div.className = "item " + (isNegativa ? "negativa" : "");
+
+    const dataFormatada = new Date(dataISO).toLocaleString("pt-BR", {
+        timeZone: "America/Sao_Paulo"
+    });
+
+    div.innerHTML = `
+        <a href="${link}" target="_blank">${titulo}</a>
+        <div style="font-size:12px; color:#555;">
+            ⏰ ${dataFormatada}
+        </div>
+    `;
+
+    document.getElementById("list").prepend(div);
+
+    som.play().catch(()=>{});
+
+    if(isNegativa){
+        notificar("🚨 ALERTA NEGATIVO", titulo);
+    } else {
+        notificar("📰 Nova informação", titulo);
+    }
+}
+
+/* ================= LOOP PRINCIPAL ================= */
 async function ciclo(){
     const alvo = document.getElementById("alvo").value;
     if(!alvo) return;
 
-    const dados = await fetchNoticias(alvo);
+    const noticias = await fetchNoticias(alvo);
 
-    dados.forEach(item => {
+    noticias.forEach(item => {
         if(noticiasVistas.has(item.link)) return;
 
         noticiasVistas.add(item.link);
 
-        const termosNegativos = [
-            "crime","fraude","preso","acusação","investigação",
-            "corrupção","escândalo","denúncia","justiça","réu"
-        ];
-
-        const titulo = item.title.toLowerCase();
-        const isNegativa = termosNegativos.some(t => titulo.includes(t));
-
-        const data = new Date(item.pubDate);
-
-        const div = document.createElement("div");
-        div.className = "item " + (isNegativa ? "negativa" : "");
-
-        div.innerHTML = `
-            <a href="${item.link}" target="_blank">${item.title}</a>
-            <div style="font-size:12px; color:#555;">
-                📅 ${data.toLocaleDateString('pt-BR')}
-                ⏰ ${data.toLocaleTimeString('pt-BR')}
-            </div>
-        `;
-
-        document.getElementById("list").prepend(div);
-
-        som.play().catch(()=>{});
-
-        if(isNegativa){
-            notificar("🚨 ALERTA NEGATIVO", item.title);
-        } else {
-            notificar("📰 Nova notícia", item.title);
-        }
+        renderItem(
+            item.title,
+            item.link,
+            item.pubDate,
+            ehNegativa(item.title)
+        );
     });
+
+    /* Redes sociais - mostra só uma vez */
+    if(!noticiasVistas.has("SOCIAL_"+alvo)){
+        noticiasVistas.add("SOCIAL_"+alvo);
+
+        const sociais = gerarLinksSociais(alvo);
+
+        sociais.forEach(s => {
+            renderItem(
+                s.titulo,
+                s.link,
+                new Date(),
+                false
+            );
+        });
+    }
 }
 
+/* ================= START ================= */
 function iniciarSistema(){
     pedirPermissao();
     ciclo();
     setInterval(ciclo, 60000);
 }
 
-/* INSTALL BUTTON */
+/* ================= INSTALAR APP ================= */
 let deferredPrompt;
 
 window.addEventListener("beforeinstallprompt", (e) => {
@@ -193,7 +242,7 @@ window.addEventListener("beforeinstallprompt", (e) => {
     document.body.appendChild(btn);
 });
 
-/* SERVICE WORKER */
+/* ================= SERVICE WORKER ================= */
 if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js");
 }
