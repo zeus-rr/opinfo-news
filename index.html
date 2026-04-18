@@ -33,6 +33,7 @@ button { padding:10px; margin:5px; }
     background:#f3e8ff;
 }
 
+/* LOGIN */
 #loginScreen {
     position:fixed;
     inset:0;
@@ -42,6 +43,27 @@ button { padding:10px; margin:5px; }
     justify-content:center;
     align-items:center;
     z-index:9999;
+}
+
+/* BOTÃO INSTALAR */
+#installBtn {
+    position:fixed;
+    bottom:20px;
+    right:20px;
+    background:#2563eb;
+    color:white;
+    border:none;
+    padding:14px 18px;
+    border-radius:50px;
+    font-weight:bold;
+    box-shadow:0 6px 15px rgba(0,0,0,0.2);
+    cursor:pointer;
+    display:none;
+    z-index:999;
+}
+
+#installBtn:hover {
+    transform:scale(1.05);
 }
 </style>
 </head>
@@ -65,11 +87,15 @@ button { padding:10px; margin:5px; }
 
 <div id="list"></div>
 
+<!-- BOTÃO FIXO -->
+<button id="installBtn">📲 Instalar</button>
+
 <script>
 
 const EMAIL_AUTORIZADO = "segurologin@gmail.com";
 
 let noticiasVistas = new Set();
+let deferredPrompt;
 
 // manter login
 window.onload = () => {
@@ -78,7 +104,7 @@ window.onload = () => {
     }
 };
 
-// login simples
+// login
 function liberarAcesso(){
     const nome = document.getElementById("nome").value;
     const telefone = document.getElementById("telefone").value;
@@ -99,20 +125,37 @@ function liberarAcesso(){
     document.getElementById("loginScreen").style.display = "none";
 }
 
-// notificação
+// PWA INSTALL
+window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+
+    const btn = document.getElementById("installBtn");
+    btn.style.display = "block";
+});
+
+document.getElementById("installBtn").onclick = async () => {
+    if(!deferredPrompt) return;
+
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+
+    deferredPrompt = null;
+    document.getElementById("installBtn").style.display = "none";
+};
+
+// NOTIFICAÇÃO
 function notificar(titulo, corpo) {
     if (Notification.permission === "granted") {
         navigator.serviceWorker.getRegistration().then(reg => {
             if(reg){
-                reg.showNotification(titulo, {
-                    body: corpo
-                });
+                reg.showNotification(titulo, { body: corpo });
             }
         });
     }
 }
 
-// buscar notícias
+// BUSCA
 async function fetchNoticias(alvo){
     const queries = [
         `"${alvo}"`,
@@ -136,7 +179,7 @@ async function fetchNoticias(alvo){
     return resultados;
 }
 
-// processamento
+// PROCESSAMENTO
 async function ciclo(){
     const alvo = document.getElementById("alvo").value;
     if(!alvo) return;
@@ -152,16 +195,14 @@ async function ciclo(){
         const link = item.link.toLowerCase();
 
         const termosNegativos = [
-            "crime","fraude","preso","acusação","investigação",
-            "corrupção","escândalo","denúncia","justiça","réu"
+            "crime","fraude","preso","corrupção","denúncia"
         ];
 
         const isNegativa = termosNegativos.some(t => titulo.includes(t));
 
         const isSocial =
-            link.includes("instagram.com") ||
-            link.includes("facebook.com") ||
-            link.includes("twitter.com") ||
+            link.includes("instagram") ||
+            link.includes("facebook") ||
             link.includes("x.com");
 
         let classe = "item";
@@ -175,7 +216,7 @@ async function ciclo(){
 
         div.innerHTML = `
             <a href="${item.link}" target="_blank">${item.title}</a>
-            <div style="font-size:12px; color:#555;">
+            <div style="font-size:12px;">
                 📅 ${data.toLocaleDateString('pt-BR')}
                 ⏰ ${data.toLocaleTimeString('pt-BR')}
             </div>
@@ -184,25 +225,23 @@ async function ciclo(){
         document.getElementById("list").prepend(div);
 
         if(isNegativa){
-            notificar("🚨 ALERTA DE RISCO", item.title);
-        }
-        else if(isSocial){
-            notificar("📱 ATIVIDADE SOCIAL", item.title);
-        }
-        else{
-            notificar("📰 Nova notícia", item.title);
+            notificar("🚨 RISCO", item.title);
+        } else if(isSocial){
+            notificar("📱 SOCIAL", item.title);
+        } else {
+            notificar("📰 NOTÍCIA", item.title);
         }
     });
 }
 
-// iniciar sistema
+// START
 function iniciarSistema(){
     Notification.requestPermission();
     ciclo();
     setInterval(ciclo, 60000);
 }
 
-// registrar PWA
+// SERVICE WORKER
 if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js");
 }
