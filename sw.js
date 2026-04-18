@@ -1,13 +1,6 @@
-const CACHE = "opinfo-v1";
-
 self.addEventListener("install", e => {
     e.waitUntil(
-        caches.open(CACHE).then(cache => {
-            return cache.addAll([
-                "./",
-                "./index.html"
-            ]);
-        })
+        caches.open("opinfo-cache").then(cache => cache.addAll(["./"]))
     );
 });
 
