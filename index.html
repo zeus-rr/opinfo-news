@@ -11,9 +11,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- EMAILJS -->
-<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-
 <style>
 body { font-family: Arial; background:#f1f5f9; padding:15px;}
 
@@ -21,10 +18,17 @@ input { padding:10px; margin:5px; width:250px; }
 
 button { padding:10px; margin:5px; }
 
-.item { background:white; padding:10px; margin:5px; border-radius:8px;}
+.item {
+    background:white;
+    padding:10px;
+    margin:5px;
+    border-radius:8px;
+}
 
-.item.negativa { border-left:5px solid red; background:#ffe5e5;}
-.item.social { border-left:5px solid purple; background:#f3e8ff;}
+.item.negativa {
+    border-left: 5px solid #dc2626;
+    background: #ffe5e5;
+}
 
 #loginScreen {
     position:fixed;
@@ -42,13 +46,13 @@ button { padding:10px; margin:5px; }
 <body>
 
 <div id="loginScreen">
-<h2>Acesso ao Sistema</h2>
+    <h2>Acesso ao Sistema</h2>
 
-<input id="nome" placeholder="Nome"><br>
-<input id="telefone" placeholder="Telefone"><br>
-<input id="email" placeholder="Email"><br>
+    <input id="nome" placeholder="Seu nome"><br>
+    <input id="telefone" placeholder="Telefone"><br>
+    <input id="email" placeholder="Email"><br>
 
-<button onclick="liberarAcesso()">Entrar</button>
+    <button onclick="liberarAcesso()">Entrar</button>
 </div>
 
 <h2>🔥 OpInfo News</h2>
@@ -60,28 +64,17 @@ button { padding:10px; margin:5px; }
 
 <script>
 
-// 🔑 CONFIGURE AQUI
 const EMAIL_AUTORIZADO = "segurologin@gmail.com";
 
-// EMAILJS CONFIG
-emailjs.init("SUA_PUBLIC_KEY");
-
 let noticiasVistas = new Set();
+const som = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
 
 window.onload = () => {
-    if(localStorage.getItem("usuario")){
+    const user = localStorage.getItem("usuario");
+    if(user){
         document.getElementById("loginScreen").style.display = "none";
     }
 };
-
-function enviarEmail(nome, telefone, email){
-    emailjs.send("SEU_SERVICE_ID","SEU_TEMPLATE_ID",{
-        nome: nome,
-        telefone: telefone,
-        email: email,
-        data: new Date().toLocaleString()
-    });
-}
 
 function liberarAcesso(){
     const nome = document.getElementById("nome").value;
@@ -89,29 +82,33 @@ function liberarAcesso(){
     const email = document.getElementById("email").value;
 
     if(!nome || !telefone || !email){
-        alert("Preencha tudo");
+        alert("Preencha todos os campos");
         return;
     }
 
     if(email !== EMAIL_AUTORIZADO){
-        alert("Não autorizado");
+        alert("Acesso não autorizado");
         return;
     }
 
     localStorage.setItem("usuario", JSON.stringify({nome, telefone, email}));
 
-    enviarEmail(nome, telefone, email);
-
     document.getElementById("loginScreen").style.display = "none";
 }
 
-// 🔔 NOTIFICAÇÃO
+async function pedirPermissao() {
+    if ("Notification" in window) {
+        await Notification.requestPermission();
+    }
+}
+
 function notificar(titulo, corpo) {
     if (Notification.permission === "granted") {
         navigator.serviceWorker.getRegistration().then(reg => {
             if(reg){
                 reg.showNotification(titulo, {
-                    body: corpo
+                    body: corpo,
+                    icon: "https://zeus-rr.github.io/osint/simbolo.ico"
                 });
             }
         });
@@ -119,26 +116,13 @@ function notificar(titulo, corpo) {
 }
 
 async function fetchNoticias(alvo){
-    const queries = [
-        `"${alvo}"`,
-        `"${alvo}" instagram`,
-        `"${alvo}" facebook`,
-        `"${alvo}" x.com`
-    ];
+    const url = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(
+        `https://news.google.com/rss/search?q=${encodeURIComponent(alvo)}&hl=pt-BR&gl=BR&ceid=BR:pt`
+    )}`;
 
-    let resultados = [];
-
-    for(const q of queries){
-        const url = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(
-            `https://news.google.com/rss/search?q=${encodeURIComponent(q)}`
-        )}`;
-
-        const res = await fetch(url);
-        const data = await res.json();
-        resultados = resultados.concat(data.items || []);
-    }
-
-    return resultados;
+    const res = await fetch(url);
+    const data = await res.json();
+    return data.items || [];
 }
 
 async function ciclo(){
@@ -152,46 +136,64 @@ async function ciclo(){
 
         noticiasVistas.add(item.link);
 
+        const termosNegativos = [
+            "crime","fraude","preso","acusação","investigação",
+            "corrupção","escândalo","denúncia","justiça","réu"
+        ];
+
         const titulo = item.title.toLowerCase();
-        const link = item.link.toLowerCase();
-
-        const termosNegativos = ["crime","fraude","preso","corrupção"];
-        const termosSociais = ["instagram","facebook","twitter","x.com"];
-
         const isNegativa = termosNegativos.some(t => titulo.includes(t));
-        const isSocial = link.includes("instagram") || link.includes("facebook") || link.includes("x.com");
-
-        let classe = "item";
-        if(isNegativa) classe += " negativa";
-        else if(isSocial) classe += " social";
 
         const data = new Date(item.pubDate);
 
         const div = document.createElement("div");
-        div.className = classe;
+        div.className = "item " + (isNegativa ? "negativa" : "");
 
         div.innerHTML = `
             <a href="${item.link}" target="_blank">${item.title}</a>
-            <div>
-                📅 ${data.toLocaleDateString()} ⏰ ${data.toLocaleTimeString()}
+            <div style="font-size:12px; color:#555;">
+                📅 ${data.toLocaleDateString('pt-BR')}
+                ⏰ ${data.toLocaleTimeString('pt-BR')}
             </div>
         `;
 
         document.getElementById("list").prepend(div);
 
-        if(isNegativa) notificar("🚨 RISCO", item.title);
-        else if(isSocial) notificar("📱 SOCIAL", item.title);
-        else notificar("📰 NOTÍCIA", item.title);
+        som.play().catch(()=>{});
+
+        if(isNegativa){
+            notificar("🚨 ALERTA NEGATIVO", item.title);
+        } else {
+            notificar("📰 Nova notícia", item.title);
+        }
     });
 }
 
 function iniciarSistema(){
-    Notification.requestPermission();
+    pedirPermissao();
     ciclo();
     setInterval(ciclo, 60000);
 }
 
-// PWA
+/* INSTALL BUTTON */
+let deferredPrompt;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+
+    const btn = document.createElement("button");
+    btn.innerText = "📲 Instalar App";
+
+    btn.onclick = async () => {
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+    };
+
+    document.body.appendChild(btn);
+});
+
+/* SERVICE WORKER */
 if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js");
 }
