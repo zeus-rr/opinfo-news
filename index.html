@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="icon" href="https://zeus-rr.github.io/osint/simbolo.ico">
-  <link rel="apple-touch-icon" href="https://zeus-rr.github.io/osint/simbolo.ico">
-  <link rel="shortcut icon" href="https://zeus-rr.github.io/osint/simbolo.ico">
+  <link rel="apple-touch-icon" href="https://zeus-rr.github.io/osint/simbolo.png">
+  <link rel="shortcut icon" href="https://zeus-rr.github.io/osint/simbolo.png">
     <title>OpInfo News</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2563eb">
@@ -122,7 +122,7 @@ async function ciclo(){
 
         const titulo = item.title.toLowerCase();
         const link = item.link.toLowerCase();
-        const termosNegativos = ["crime","fraude","preso","corrupção","denúncia","polícia","justiça","investigação"];
+        const termosNegativos = ["processo", "crime", "fraude", "negativa", "justiça", "investigação", "mentira", "homofobia", "feminicidio", "homicidio", "preconceito", "acusação", "preso", "irregular", "denúncia", "polícia", "réu", "corrupção", "bloqueio", "escândalo"];
 
         const isNegativa = termosNegativos.some(t => titulo.includes(t));
         const isSocial = link.includes("instagram") || link.includes("facebook") || link.includes("x.com") || link.includes("tiktok");
