@@ -1,4 +1,4 @@
-const CACHE = "opinfo-v1";
+const CACHE = "OpInfo News";
 
 self.addEventListener("install", e => {
     e.waitUntil(
