@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="icon" href="https://zeus-rr.github.io/osint/simbolo.ico">
-  <link rel="apple-touch-icon" href="https://zeus-rr.github.io/osint/simbolo.png">
-  <link rel="shortcut icon" href="https://zeus-rr.github.io/osint/simbolo.png">
-    <title>OpInfo News</title>
-						  
+    <link rel="icon" href="https://zeus-rr.github.io/osint/simbolo.ico">
+    <link rel="apple-touch-icon" href="https://zeus-rr.github.io/osint/simbolo.ico">
+    <title>OpInfo News - Monitoramento</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2563eb">
     <style>
@@ -23,33 +21,30 @@
         .item a { text-decoration: none; color: #2563eb; font-size: 16px; display: block; margin-bottom: 5px; font-weight: bold; }
         .data-info { font-size: 12px; color: #64748b; }
         #loginScreen { position:fixed; inset:0; background:white; display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:9999; }
-        #installBtn { position:fixed; bottom:20px; right:20px; background:#2563eb; color:white; border:none; padding:14px 18px; border-radius:50px; font-weight:bold; display:none; z-index:999; }
+        #installBtn { position:fixed; bottom:20px; right:20px; background:#2563eb; color:white; border:none; padding:14px 18px; border-radius:50px; font-weight:bold; display:none; z-index:999; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
 
 <div id="loginScreen">
+    <img src="https://zeus-rr.github.io/osint/simbolo.ico" style="width: 80px; margin-bottom: 20px;">
     <h2>Acesso ao Sistema</h2>
     <input id="nome" placeholder="Nome"><br>
     <input id="telefone" placeholder="Telefone"><br>
-    <input id="email" placeholder="Senha"><br>
+    <input id="email" type="password" placeholder="Senha"><br>
     <button onclick="liberarAcesso()">Entrar</button>
 </div>
 
-<h2 style="text-align:center; margin:0 0 15px 0;"> <img src="https://zeus-rr.github.io/osint/simbolo.ico" alt="Logo" class="mb-2" style="width: 80px; height: 80px; object-fit: contain;"><p>
-<h2><center>OpInfo News</h2>
+<h2 style="text-align:center;">OpInfo News</h2>
 
 <div class="controls">
     <input id="alvo" placeholder="Digite o nome do alvo...">
-    
     <select id="periodo">
         <option value="">Todo o Período</option>
         <option value="when:1d">Últimas 24 Horas</option>
         <option value="when:7d">Última Semana</option>
         <option value="when:30d">Último Mês</option>
-        <option value="when:1y">Último Ano</option>
     </select>
-
     <button onclick="iniciarSistema()">Monitorar</button>
 </div>
 
@@ -62,15 +57,15 @@ let noticiasVistas = new Set();
 let deferredPrompt;
 let intervaloBusca;
 
+// Autenticação simples
 window.onload = () => {
-    if(localStorage.getItem("usuario")){
+    if(localStorage.getItem("usuario")) {
         document.getElementById("loginScreen").style.display = "none";
     }
 };
 
 function liberarAcesso(){
-    const email = document.getElementById("email").value;
-    if(email !== EMAIL_AUTORIZADO){
+    if(document.getElementById("email").value !== EMAIL_AUTORIZADO){
         alert("Acesso não autorizado");
         return;
     }
@@ -78,24 +73,34 @@ function liberarAcesso(){
     document.getElementById("loginScreen").style.display = "none";
 }
 
+// Lógica de Instalação (PWA)
 window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     deferredPrompt = e;
     document.getElementById("installBtn").style.display = "block";
 });
 
+document.getElementById("installBtn").addEventListener("click", async () => {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === "accepted") {
+            document.getElementById("installBtn").style.display = "none";
+        }
+        deferredPrompt = null;
+    }
+});
+
 function notificar(titulo, corpo) {
     if (Notification.permission === "granted") {
         navigator.serviceWorker.getRegistration().then(reg => {
-            if(reg) reg.showNotification(titulo, { body: corpo });
+            if(reg) reg.showNotification(titulo, { body: corpo, icon: 'https://zeus-rr.github.io/osint/simbolo.ico' });
         });
     }
 }
 
 async function fetchNoticias(alvo, filtroTempo){
-    // Combina o alvo com o filtro de tempo (ex: "Fulano when:1d")
     const buscaCompleta = `${alvo} ${filtroTempo}`.trim();
-    
     const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(buscaCompleta)}&hl=pt-BR&gl=BR&ceid=BR:pt`;
     const url = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
     
@@ -104,7 +109,6 @@ async function fetchNoticias(alvo, filtroTempo){
         const data = await res.json();
         return data.items || [];
     } catch (e) { 
-        console.error("Erro na busca:", e);
         return []; 
     }
 }
@@ -112,10 +116,10 @@ async function fetchNoticias(alvo, filtroTempo){
 async function ciclo(){
     const alvo = document.getElementById("alvo").value;
     const periodo = document.getElementById("periodo").value;
-    
     if(!alvo) return;
 
     const dados = await fetchNoticias(alvo, periodo);
+    const container = document.getElementById("list");
 
     dados.forEach(item => {
         if(noticiasVistas.has(item.link)) return;
@@ -123,47 +127,29 @@ async function ciclo(){
 
         const titulo = item.title.toLowerCase();
         const link = item.link.toLowerCase();
-        const termosNegativos = ["processo", "crime", "fraude", "negativa", "justiça", "investigação", "mentira", "homofobia", "feminicidio", "homicidio", "preconceito", "acusação", "preso", "irregular", "denúncia", "polícia", "réu", "corrupção", "bloqueio", "escândalo"];
+        const termosNegativos = ["processo", "crime", "fraude", "justiça", "investigação", "preso", "denúncia", "polícia", "corrupção"];
 
         const isNegativa = termosNegativos.some(t => titulo.includes(t));
-        const isSocial = link.includes("instagram") || link.includes("facebook") || link.includes("x.com") || link.includes("tiktok");
+        const isSocial = /instagram|facebook|twitter|tiktok|x\.com/.test(link);
 
-        let classe = "item";
-        if(isNegativa) classe += " negativa";
-        else if(isSocial) classe += " social";
-
-        const dataObjeto = new Date(item.pubDate);
-        const dataFormatada = !isNaN(dataObjeto.getTime()) 
-            ? dataObjeto.toLocaleDateString('pt-BR') 
-            : "Data recente";
+        let classe = "item" + (isNegativa ? " negativa" : isSocial ? " social" : "");
 
         const div = document.createElement("div");
         div.className = classe;
-        div.innerHTML = `
-            <a href="${item.link}" target="_blank">${item.title}</a>
-            <div class="data-info">📅 ${dataFormatada}</div>
-        `;
-
-        document.getElementById("list").prepend(div);
+        div.innerHTML = `<a href="${item.link}" target="_blank">${item.title}</a><div class="data-info">📅 ${item.pubDate}</div>`;
+        container.prepend(div);
 
         if(isNegativa) notificar("🚨 RISCO IDENTIFICADO", item.title);
     });
 }
 
 function iniciarSistema(){
-    // Limpar resultados anteriores ao trocar de busca/período
     document.getElementById("list").innerHTML = "";
     noticiasVistas.clear();
-    
-    if (Notification.permission !== "granted") {
-        Notification.requestPermission();
-    }
-    
-    // Para qualquer intervalo anterior para não duplicar buscas
+    Notification.requestPermission();
     if(intervaloBusca) clearInterval(intervaloBusca);
-    
     ciclo();
-    intervaloBusca = setInterval(ciclo, 120000); // 2 minutos
+    intervaloBusca = setInterval(ciclo, 120000);
 }
 
 if ("serviceWorker" in navigator) {
