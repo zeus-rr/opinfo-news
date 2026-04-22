@@ -1,237 +1,226 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-       <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="icon" href="https://zeus-rr.github.io/osint/simbolo.ico">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="https://zeus-rr.github.io/osint/simbolo.ico">
   <link rel="apple-touch-icon" href="https://zeus-rr.github.io/osint/simbolo.ico">
   <link rel="shortcut icon" href="https://zeus-rr.github.io/osint/simbolo.ico">
-    <title>OpInfo News - Monitoramento</title>
+    <title>OpInfo News</title>
 	
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#2563eb">
-
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background:#f1f5f9; padding:15px; color: #334155; }
-        input, select { padding:10px; margin:5px; width:250px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background:#f1f5f9; padding:15px; margin:0; }
+        .controls { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: sticky; top: 10px; z-index: 100; }
+        input, select { padding: 12px; margin: 5px; width: 90%; max-width: 280px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; outline: none; }
         input:focus { border-color: #2563eb; }
-        button { padding:10px 20px; margin:5px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #1d4ed8; }
-
-        .item {
-            background:white;
-            padding:15px;
-            margin:10px 0;
-            border-radius:8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
-        }
-        .item:hover { transform: translateY(-2px); }
-        .item a { text-decoration: none; color: #1e293b; font-size: 16px; display: block; margin-bottom: 5px; }
         
-        /* ESTILO PARA NOTÍCIAS NEGATIVAS */
-        .item.negativa {
-            border-left: 8px solid #b91c1c; /* Vermelho escuro */
-            background: #fee2e2; /* Fundo vermelho claro */
-        }
-        .item.negativa a {
-            color: #991b1b; /* Texto do link vermelho */
-        }
-        .item.negativa .data-label {
-            color: #b91c1c !important; /* Data em vermelho */
-        }
-
-        #loginScreen {
-            position:fixed;
-            inset:0;
-            background:#f8fafc;
-            display:flex;
-            flex-direction:column;
-            justify-content:center;
-            align-items:center;
-            z-index:9999;
-        }
+        .btn-group { display: flex; gap: 10px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
+        button { padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; color: white; min-width: 120px; }
+        button:active { transform: scale(0.98); }
         
-        .controls { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
-        #status { font-weight: 500; }
+        .btn-monitor { background: #2563eb; }
+        .btn-monitor:hover { background: #1d4ed8; }
+        .btn-clear { background: #64748b; }
+        .btn-clear:hover { background: #475569; }
+        
+        /* Barra de Regressão */
+        .progress-container { width: 100%; height: 6px; background: #e2e8f0; border-radius: 10px; margin: 15px 0; display: none; overflow: hidden; }
+        #progressBar { width: 100%; height: 100%; background: #2563eb; transition: width 1s linear; }
+        
+        #status { font-size: 13px; color: #64748b; font-weight: 500; }
+
+        /* Estilo dos Cards */
+        .item { background:white; padding:16px; margin:12px 0; border-radius:10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 6px solid #cbd5e1; animation: slideIn 0.3s ease-out; text-align: left; }
+        .item.negativa { border-left-color: #b91c1c; background: #fee2e2; }
+        .item a { text-decoration: none; color: #1e293b; font-weight: bold; display: block; font-size: 17px; margin-bottom: 8px; }
+        .item.negativa a { color: #991b1b; }
+        .item small { color: #64748b; font-size: 12px; }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Tela de Login */
+        #loginScreen { position:fixed; inset:0; background:#f8fafc; display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:9999; }
+        .creditos { margin-top: 30px; text-align: center; color: #64748b; font-size: 13px; line-height: 1.5; border-top: 1px solid #e2e8f0; padding-top: 15px; width: 250px; }
+        .creditos strong { color: #1e293b; display: block; margin-bottom: 2px; }
     </style>
 </head>
-
 <body>
 
 <div id="loginScreen">
-    <img src="https://zeus-rr.github.io/osint/simbolo.ico" alt="Logo" style="width: 80px; height: 80px; margin-bottom: 20px;">
-    <h2 style="margin-bottom: 20px;">Acesso Restrito</h2>
-    <input id="nome" placeholder="Seu nome">
-    <input id="telefone" placeholder="Telefone">
-    <input id="senha" type="password" placeholder="Senha do Sistema">
-    <button onclick="liberarAcesso()">Entrar</button>
+    <img src="https://zeus-rr.github.io/osint/simbolo.ico" style="width: 80px; margin-bottom: 20px;">
+    <h2 style="color:#1e293b; margin-bottom: 20px;">OpInfo News</h2>
+    <input id="senha" type="password" placeholder="Senha do Sistema" autofocus>
+    <button class="btn-monitor" onclick="liberarAcesso()">Acessar Painel</button>
+    
+    <div class="creditos">
+        Criado e desenvolvido por<br>
+        <strong>Rafael RDS</strong>
+        Analista e Desenvolvedor de Sistemas
+    </div>
 </div>
 
 <div class="controls">
-    <img src="https://zeus-rr.github.io/osint/simbolo.ico" alt="Logo" style="width: 50px; vertical-align: middle;">
-    <h2 style="display:inline-block; margin-left: 10px;">OpInfo News</h2>
-    <br><br>
+    <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 15px;">
+        <img src="https://zeus-rr.github.io/osint/simbolo.ico" style="width: 35px;">
+        <h2 style="margin:0; font-size: 22px;">OpInfo News</h2>
+    </div>
     <input id="alvo" placeholder="Digite o alvo da busca">
     <select id="periodo">
-        <option value="">Todo o período</option>
-        <option value="1d">Últimas 24 horas</option>
-        <option value="7d">Última Semana</option>
-        <option value="1m">Último Mês</option>
+        <option value="">Todo o tempo</option>
+        <option value="1d">Últimas 24h</option>
+        <option value="7d">Última semana</option>
+        <option value="1m">Último mês</option>
     </select>
-    <button onclick="iniciarSistema()">Iniciar Monitoramento</button>
-    <p id="status" style="font-size: 13px; color: #64748b; margin-top: 10px;"></p>
+    
+    <div class="btn-group">
+        <button class="btn-monitor" onclick="iniciarSistema()">Monitorar</button>
+        <button class="btn-clear" onclick="limparSistema()">Limpar Tudo</button>
+    </div>
+    
+    <div class="progress-container" id="pContainer">
+        <div id="progressBar"></div>
+    </div>
+    <p id="status">Aguardando comando...</p>
 </div>
 
 <div id="list"></div>
 
 <script>
-/* ================= CONFIGURAÇÕES E SEGURANÇA ================= */
+/* ================= CONFIGURAÇÕES GERAIS ================= */
 const HASH_AUTORIZADO = "b4ae89535a430bfa612afcb9ec705cb4e5c1539e";
+const WHATSAPP_API_KEY = "SUA_API_KEY_AQUI"; // << COLOQUE SUA CHAVE AQUI
+const WHATSAPP_FONE = "";
 
 let noticiasVistas = new Set();
-const som = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
-let intervalId = null;
+let tempoRestante = 60;
+let timerInterval = null;
+const somNotificacao = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
 
-async function gerarHash(string) {
-    const msgUint8 = new TextEncoder().encode(string);
-    const hashBuffer = await crypto.subtle.digest('SHA-1', msgUint8);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+/* ================= SEGURANÇA ================= */
+async function gerarHash(s) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(s);
+    const hash = await crypto.subtle.digest('SHA-1', data);
+    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-/* ================= LOGIN ================= */
 window.onload = () => {
-    if(localStorage.getItem("usuario_autenticado")){
+    if(localStorage.getItem("autenticado")){
         document.getElementById("loginScreen").style.display = "none";
+        const cache = localStorage.getItem("cache_noticias");
+        if(cache) {
+            document.getElementById("list").innerHTML = cache;
+            document.querySelectorAll("#list a").forEach(a => noticiasVistas.add(a.href));
+        }
     }
 };
 
 async function liberarAcesso(){
-    const nome = document.getElementById("nome").value;
-    const telefone = document.getElementById("telefone").value;
-    const senha = document.getElementById("senha").value;
-
-    if(!nome || !telefone || !senha) {
-        alert("Preencha todos os campos.");
-        return;
-    }
-
-    const hashDigitado = await gerarHash(senha);
-    
-    if(hashDigitado === HASH_AUTORIZADO){
-        localStorage.setItem("usuario_autenticado", JSON.stringify({nome, telefone}));
+    const s = document.getElementById("senha").value;
+    if(await gerarHash(s) === HASH_AUTORIZADO){
+        localStorage.setItem("autenticado", "true");
         document.getElementById("loginScreen").style.display = "none";
-    } else {
-        alert("Senha incorreta!");
+        somNotificacao.play().catch(() => {}); 
+    } else { alert("Senha Incorreta!"); }
+}
+
+/* ================= INTEGRAÇÃO WHATSAPP ================= */
+async function enviarWhatsApp(msg) {
+    if(WHATSAPP_API_KEY === "SUA_API_KEY_AQUI") return;
+    const url = `https://api.callmebot.com/whatsapp.php?phone=${WHATSAPP_FONE}&text=${encodeURIComponent(msg)}&apikey=${WHATSAPP_API_KEY}`;
+    try { await fetch(url, { mode: 'no-cors' }); } catch (e) { console.error("Erro WhatsApp", e); }
+}
+
+/* ================= MONITORAMENTO ================= */
+function iniciarSistema(){
+    const alvo = document.getElementById("alvo").value;
+    if(!alvo) return alert("Por favor, digite um alvo!");
+    
+    document.getElementById("list").innerHTML = "";
+    noticiasVistas.clear();
+    localStorage.removeItem("cache_noticias");
+    ciclo();
+}
+
+function limparSistema() {
+    if(confirm("Deseja limpar todos os dados e o cache?")) {
+        clearInterval(timerInterval);
+        document.getElementById("list").innerHTML = "";
+        noticiasVistas.clear();
+        localStorage.removeItem("cache_noticias");
+        document.getElementById("pContainer").style.display = "none";
+        document.getElementById("status").innerText = "Aguardando novo comando...";
     }
 }
 
-/* ================= LÓGICA DE BUSCA ================= */
-async function fetchNoticias(alvo){
-    const periodo = document.getElementById("periodo").value;
-    const query = periodo ? `${alvo} when:${periodo}` : alvo;
+async function ciclo(){
+    const alvo = document.getElementById("alvo").value;
+    const per = document.getElementById("periodo").value;
+    const q = per ? `${alvo} when:${per}` : alvo;
+    const url = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(`https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=pt-BR&gl=BR&ceid=BR:pt`)}`;
     
-    const url = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(
-        `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=pt-BR&gl=BR&ceid=BR:pt`
-    )}`;
+    document.getElementById("status").innerText = "🔄 Sincronizando rede...";
 
     try {
         const res = await fetch(url);
         const data = await res.json();
-        return data.items || [];
-    } catch (e) {
-        return [];
-    }
+        let encontrouNova = false;
+
+        if(data.items) {
+            data.items.reverse().forEach(item => {
+                if(!noticiasVistas.has(item.link)){
+                    const isNeg = ["processo", "crime", "fraude", "negativa", "guerra", "justiça", "investigação", "mentira", "homofobia", "feminicidio", "homicidio", "preconceito", "acusação", "preso", "irregular", "denúncia", "polícia", "réu", "corrupção", "bloqueio", "escândalo"].some(t => item.title.toLowerCase().includes(t));
+                    render(item.title, item.link, item.pubDate, isNeg);
+                    encontrouNova = true;
+                }
+            });
+            if(encontrouNova) somNotificacao.play().catch(() => {});
+        }
+    } catch(e){ console.error(e); }
+    
+    tempoRestante = 60;
+    startTimer();
 }
 
-function ehNegativa(texto){
-    const termos = ["processo", "crime", "fraude", "negativa", "justiça", "investigação", "mentira", "homofobia", "feminicidio", "homicidio", "preconceito", "acusação", "preso", "irregular", "denúncia", "polícia", "réu", "corrupção", "bloqueio", "cpi", "stf", "escândalo"];
-    return termos.some(t => texto.toLowerCase().includes(t));
-}
-
-/* ================= RENDERIZAÇÃO ================= */
-function renderItem(titulo, link, dataISO, isNegativa){
-    if(noticiasVistas.has(link)) return;
-    noticiasVistas.add(link);
-
+function render(t, l, d, neg){
+    noticiasVistas.add(l);
     const div = document.createElement("div");
-    div.className = "item " + (isNegativa ? "negativa" : "");
-
-    const dataFormatada = new Date(dataISO).toLocaleDateString("pt-BR", {
-        day: '2-digit', month: '2-digit', year: 'numeric'
-    });
-
+    div.className = "item " + (neg ? "negativa" : "");
+    const dt = new Date(d).toLocaleDateString("pt-BR");
+    
     div.innerHTML = `
-        <a href="${link}" target="_blank"><strong>${isNegativa ? '🚨 ' : ''}${titulo}</strong></a>
-        <div class="data-label" style="font-size:12px; color:#64748b; margin-top: 8px;">📅 ${dataFormatada}</div>
+        <a href="${l}" target="_blank">${neg ? '🚨 ' : ''}${t}</a>
+        <small>📅 Publicado em: ${dt}</small>
     `;
+    
+    const list = document.getElementById("list");
+    list.insertBefore(div, list.firstChild);
+    localStorage.setItem("cache_noticias", list.innerHTML);
 
-    document.getElementById("list").prepend(div);
-    som.play().catch(()=>{});
-
-    if(isNegativa) notificar("🚨 ALERTA NEGATIVO", titulo);
-}
-
-/* ================= NOTIFICAÇÕES ================= */
-async function pedirPermissao() {
-    if ("Notification" in window) await Notification.requestPermission();
-}
-
-function notificar(titulo, corpo) {
-    if (Notification.permission === "granted") {
-        new Notification(titulo, { 
-            body: corpo, 
-            icon: "https://zeus-rr.github.io/osint/simbolo.ico" 
-        });
+    // Alerta WhatsApp para notícias negativas
+    if(neg) {
+        enviarWhatsApp(`🚨 NOTÍCIA NEGATIVA ENCONTRADA:\n\n${t}\n\nLink: ${l}`);
     }
 }
 
-/* ================= CONTROLE DE CICLO ================= */
-async function ciclo(){
-    const alvo = document.getElementById("alvo").value;
-    if(!alvo) return;
-
-    document.getElementById("status").innerText = "🔄 Atualizando notícias...";
-    const noticias = await fetchNoticias(alvo);
-    
-    noticias.forEach(item => {
-        renderItem(item.title, item.link, item.pubDate, ehNegativa(item.title));
-    });
-
-    // Links Sociais
-    const socialKey = "SOCIAL_" + alvo;
-    if(!noticiasVistas.has(socialKey)){
-        noticiasVistas.add(socialKey);
-        const redes = [
-            {t: `📸 Instagram: ${alvo}`, l: `https://www.instagram.com/explore/tags/${alvo.replace(/\s+/g, "")}/`},
-            {t: `📘 Facebook: ${alvo}`, l: `https://www.facebook.com/search/top?q=${encodeURIComponent(alvo)}`},
-            {t: `🐦 X: ${alvo}`, l: `https://x.com/search?q=${encodeURIComponent(alvo)}`}
-        ];
-        redes.forEach(r => renderItem(r.t, r.l, new Date().toISOString(), false));
-    }
-
-    document.getElementById("status").innerText = "⏳ Próxima atualização em 60 segundos";
-}
-
-function iniciarSistema(){
-    const alvo = document.getElementById("alvo").value;
-    if(!alvo) { alert("Digite um alvo!"); return; }
-    
-    pedirPermissao();
-    if(intervalId) clearInterval(intervalId);
-    
-    noticiasVistas.clear();
-    document.getElementById("list").innerHTML = "";
-    
-    ciclo();
-    intervalId = setInterval(ciclo, 60000);
+/* ================= TIMER ================= */
+function startTimer(){
+    clearInterval(timerInterval);
+    document.getElementById("pContainer").style.display = "block";
+    timerInterval = setInterval(() => {
+        tempoRestante--;
+        document.getElementById("progressBar").style.width = (tempoRestante/60)*100 + "%";
+        document.getElementById("status").innerText = "Próxima varredura em " + tempoRestante + "s";
+        if(tempoRestante <= 0) {
+            clearInterval(timerInterval);
+            ciclo();
+        }
+    }, 1000);
 }
 
 if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js");
 }
 </script>
-
 </body>
 </html>
