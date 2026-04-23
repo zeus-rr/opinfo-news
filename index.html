@@ -1,226 +1,510 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="https://zeus-rr.github.io/osint/simbolo.ico">
-  <link rel="apple-touch-icon" href="https://zeus-rr.github.io/osint/simbolo.ico">
-  <link rel="shortcut icon" href="https://zeus-rr.github.io/osint/simbolo.ico">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="https://zeus-rr.github.io/osint/simbolo.ico">
+    <link rel="apple-touch-icon" href="https://zeus-rr.github.io/osint/simbolo.ico">
+    <link rel="shortcut icon" href="https://zeus-rr.github.io/osint/simbolo.ico">
     <title>OpInfo News</title>
-	
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+
     <style>
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background:#f1f5f9; padding:15px; margin:0; }
-        .controls { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: sticky; top: 10px; z-index: 100; }
-        input, select { padding: 12px; margin: 5px; width: 90%; max-width: 280px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; outline: none; }
-        input:focus { border-color: #2563eb; }
-        
-        .btn-group { display: flex; gap: 10px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
-        button { padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; color: white; min-width: 120px; }
-        button:active { transform: scale(0.98); }
-        
-        .btn-monitor { background: #2563eb; }
-        .btn-monitor:hover { background: #1d4ed8; }
-        .btn-clear { background: #64748b; }
-        .btn-clear:hover { background: #475569; }
-        
-        /* Barra de Regressão */
-        .progress-container { width: 100%; height: 6px; background: #e2e8f0; border-radius: 10px; margin: 15px 0; display: none; overflow: hidden; }
-        #progressBar { width: 100%; height: 100%; background: #2563eb; transition: width 1s linear; }
-        
-        #status { font-size: 13px; color: #64748b; font-weight: 500; }
+        :root {
+            --google-blue: #1a73e8;
+            --google-red: #d93025;
+            --google-green: #1e8e3e;
+            --google-gray: #5f6368;
+            --google-bg: #f8f9fa;
+            --google-card: #ffffff;
+            --google-text: #202124;
+            --border-radius: 16px;
+        }
 
-        /* Estilo dos Cards */
-        .item { background:white; padding:16px; margin:12px 0; border-radius:10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 6px solid #cbd5e1; animation: slideIn 0.3s ease-out; text-align: left; }
-        .item.negativa { border-left-color: #b91c1c; background: #fee2e2; }
-        .item a { text-decoration: none; color: #1e293b; font-weight: bold; display: block; font-size: 17px; margin-bottom: 8px; }
-        .item.negativa a { color: #991b1b; }
-        .item small { color: #64748b; font-size: 12px; }
+        body {
+            font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
+            background: var(--google-bg);
+            margin: 0;
+            color: var(--google-text);
+            line-height: 1.5;
+        }
 
-        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* --- TELA DE LOGIN --- */
+        #loginScreen {
+            position: fixed;
+            inset: 0;
+            background: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
 
-        /* Tela de Login */
-        #loginScreen { position:fixed; inset:0; background:#f8fafc; display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:9999; }
-        .creditos { margin-top: 30px; text-align: center; color: #64748b; font-size: 13px; line-height: 1.5; border-top: 1px solid #e2e8f0; padding-top: 15px; width: 250px; }
-        .creditos strong { color: #1e293b; display: block; margin-bottom: 2px; }
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 90%;
+            max-width: 350px;
+        }
+
+        .creditos {
+            margin-top: 30px;
+            text-align: center;
+            color: #64748b;
+            font-size: 13px;
+            line-height: 1.5;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 15px;
+            width: 100%;
+        }
+
+        .creditos strong {
+            color: #1e293b;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        /* --- CABEÇALHO --- */
+        header {
+            background: white;
+            padding: 12px 24px;
+            border-bottom: 1px solid #dadce0;
+            display: flex;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        /* --- CONTROLES --- */
+        .controls {
+            margin: 25px auto;
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            border: 1px solid #dadce0;
+        }
+
+        .timer-container {
+            width: 100%;
+            height: 4px;
+            background: #e0e0e0;
+            margin: 20px 0 10px 0;
+            border-radius: 2px;
+            overflow: hidden;
+            display: none;
+        }
+
+        #progressBar {
+            width: 0%;
+            height: 100%;
+            background: var(--google-blue);
+            transition: width 1s linear;
+        }
+
+        input,
+        select {
+            padding: 12px;
+            margin: 5px;
+            width: 240px;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        input:focus {
+            border-color: var(--google-blue);
+            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.1);
+        }
+
+        button {
+            padding: 12px 28px;
+            background: var(--google-blue);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #1765cc;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-clear {
+            background: transparent;
+            color: var(--google-red);
+            border: 1px solid var(--google-red);
+        }
+
+        .btn-clear:hover {
+            background: #fff1f0;
+        }
+
+        /* --- DASHBOARD --- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #dadce0;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--google-gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-val {
+            font-size: 28px;
+            font-weight: bold;
+            display: block;
+            margin-top: 5px;
+        }
+
+        .stat-total { color: var(--google-blue); }
+        .stat-neg { color: var(--google-red); }
+        .stat-pos { color: var(--google-green); }
+        .stat-neu { color: var(--google-gray); }
+
+        /* --- LISTAGEM --- */
+        .item {
+            background: white;
+            padding: 25px;
+            margin-bottom: 15px;
+            border-radius: var(--border-radius);
+            border: 1px solid #dadce0;
+            transition: transform 0.2s;
+            animation: slideUp 0.4s ease-out;
+        }
+
+        .item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .item a {
+            text-decoration: none;
+            color: var(--google-text);
+            font-size: 18px;
+            font-weight: 500;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .item a:hover { color: var(--google-blue); }
+
+        .source-label {
+            font-size: 12px;
+            color: var(--google-gray);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tag-sentimento {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+
+        .item.negativa { border-left: 8px solid var(--google-red); }
+        .item.positiva { border-left: 8px solid var(--google-green); }
+        .item.neutra { border-left: 8px solid #cbd5e1; }
+
+        #status {
+            font-size: 13px;
+            color: var(--google-blue);
+            margin-top: 10px;
+            font-weight: 500;
+        }
     </style>
 </head>
+
 <body>
 
-<div id="loginScreen">
-    <img src="https://zeus-rr.github.io/osint/simbolo.ico" style="width: 80px; margin-bottom: 20px;">
-    <h2 style="color:#1e293b; margin-bottom: 20px;">OpInfo News</h2>
-    <input id="senha" type="password" placeholder="Senha do Sistema" autofocus>
-    <button class="btn-monitor" onclick="liberarAcesso()">Acessar Painel</button>
-    
-    <div class="creditos">
-        Criado e desenvolvido por<br>
-        <strong>Rafael RDS</strong>
-        Analista e Desenvolvedor de Sistemas
+    <div id="loginScreen">
+        <div class="login-card">
+            <img src="https://zeus-rr.github.io/osint/simbolo.ico" width="50" style="margin-bottom:15px">
+            <h2 style="margin-top:0">Acesso Restrito</h2>
+            <input id="senha" type="password" placeholder="Senha do Sistema">
+            <button onclick="liberarAcesso()" style="width:100%; margin-top:15px;">Entrar no Painel</button>
+
+            <div class="creditos">
+                Criado e desenvolvido por<br>
+                <strong>Rafael RDS</strong>
+                Analista e Desenvolvedor de Sistemas
+            </div>
+        </div>
     </div>
-</div>
 
-<div class="controls">
-    <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 15px;">
-        <img src="https://zeus-rr.github.io/osint/simbolo.ico" style="width: 35px;">
-        <h2 style="margin:0; font-size: 22px;">OpInfo News</h2>
+    <header>
+        <div class="container" style="display:flex; align-items:center; width:100%">
+            <img src="https://zeus-rr.github.io/osint/simbolo.ico" width="32" style="margin-right:12px">
+         	<span style="font-size:20px; letter-spacing:-0.5px">OpInfo<b>News</b></span>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="controls">
+            <input id="alvo" placeholder="Digite o nome do alvo">
+            <select id="periodo">
+                <option value="">Todo o Histórico</option>
+                <option value="1d">Últimas 24 Horas</option>
+                <option value="7d">Últimos 7 Dias</option>
+                <option value="1m">Último Mês</option>
+            </select>
+            <button onclick="iniciarSistema()">Iniciar Monitoramento</button>
+            <button class="btn-clear" onclick="limparHistorico()">Limpar Dados</button>
+
+            <div class="timer-container">
+                <div id="progressBar"></div>
+            </div>
+            <p id="status"></p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card"><span class="stat-label">Monitoradas</span><span id="count-total" class="stat-val stat-total">0</span></div>
+            <div class="stat-card"><span class="stat-label">Negativas</span><span id="count-neg" class="stat-val stat-neg">0</span></div>
+            <div class="stat-card"><span class="stat-label">Positivas</span><span id="count-pos" class="stat-val stat-pos">0</span></div>
+            <div class="stat-card"><span class="stat-label">Neutras</span><span id="count-neu" class="stat-val stat-neu">0</span></div>
+        </div>
+
+        <div id="list"></div>
     </div>
-    <input id="alvo" placeholder="Digite o alvo da busca">
-    <select id="periodo">
-        <option value="">Todo o tempo</option>
-        <option value="1d">Últimas 24h</option>
-        <option value="7d">Última semana</option>
-        <option value="1m">Último mês</option>
-    </select>
-    
-    <div class="btn-group">
-        <button class="btn-monitor" onclick="iniciarSistema()">Monitorar</button>
-        <button class="btn-clear" onclick="limparSistema()">Limpar Tudo</button>
-    </div>
-    
-    <div class="progress-container" id="pContainer">
-        <div id="progressBar"></div>
-    </div>
-    <p id="status">Aguardando comando...</p>
-</div>
 
-<div id="list"></div>
+    <script>
+        /* --- CONFIGURAÇÕES GERAIS --- */
+        const HASH_SISTEMA = "b4ae89535a430bfa612afcb9ec705cb4e5c1539e"; // Senha: admin
+        let db = JSON.parse(localStorage.getItem("db_monitoramento") || "[]");
+        let loopMonitor = null;
+        const somSirene = new Audio('https://www.soundjay.com/buttons/sounds/beep-01a.mp3');
 
-<script>
-/* ================= CONFIGURAÇÕES GERAIS ================= */
-const HASH_AUTORIZADO = "b4ae89535a430bfa612afcb9ec705cb4e5c1539e";
-const WHATSAPP_API_KEY = "SUA_API_KEY_AQUI"; // << COLOQUE SUA CHAVE AQUI
-const WHATSAPP_FONE = "";
+        /* --- AUTENTICAÇÃO --- */
+        async function gerarHash(str) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(str);
+            const hash = await crypto.subtle.digest('SHA-1', data);
+            return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
 
-let noticiasVistas = new Set();
-let tempoRestante = 60;
-let timerInterval = null;
-const somNotificacao = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+        window.onload = () => {
+            if (localStorage.getItem("sessao_ativa")) {
+                document.getElementById("loginScreen").style.display = "none";
+                atualizarPainel();
+            }
+        };
 
-/* ================= SEGURANÇA ================= */
-async function gerarHash(s) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(s);
-    const hash = await crypto.subtle.digest('SHA-1', data);
-    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+        async function liberarAcesso() {
+            const s = document.getElementById("senha").value;
+            if (await gerarHash(s) === HASH_SISTEMA) {
+                localStorage.setItem("sessao_ativa", "true");
+                document.getElementById("loginScreen").style.display = "none";
+            } else {
+                alert("Senha incorreta.");
+            }
+        }
+
+        /* --- MOTOR DE BUSCA --- */
+        function processarSentimento(texto) {
+            const termosNeg = ["processo", "crime", "fraude", "justiça", "homicidio", "feminicidio", "morte", "grave", "punição", "medo", "investigação", "acusação", "preso", "denúncia", "polícia", "escândalo", "corrupção", "irregular", "réu", "stf", "cpi", "multa"];
+            const termosPos = ["sucesso", "vitória", "ganha", "lidera", "conquista", "expande", "desenvolvimento", "crescimneto", "melhor", "premiado", "cresce", "acordo", "benefício", "inovação", "lucro"];
+            const t = texto.toLowerCase();
+            if (termosNeg.some(w => t.includes(w))) return "negativa";
+            if (termosPos.some(w => t.includes(w))) return "positiva";
+            return "neutra";
+        }
+
+        async function capturarDados(alvo, rede = "") {
+            let query = rede ? `${alvo} site:${rede}` : alvo;
+            const p = document.getElementById("periodo").value;
+            if (p) query += ` when:${p}`;
+
+            const api = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(`https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=pt-BR&gl=BR&ceid=BR:pt`)}`;
+
+            try {
+                const res = await fetch(api);
+                const json = await res.json();
+                return json.items || [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+function atualizarPainel() {
+    const list = document.getElementById("list");
+    list.innerHTML = "";
+
+    let cNeg = 0, cPos = 0, cNeu = 0;
+
+    [...db].reverse().forEach(noticia => {
+        if (noticia.sentimento === "negativa") cNeg++;
+        else if (noticia.sentimento === "positiva") cPos++;
+        else cNeu++;
+
+        // Prepara a mensagem para o WhatsApp
+        const textoWhatsapp = encodeURIComponent(
+            `*OpInfo News - Alerta de Monitoramento*\n\n` +
+            `📢 *Título:* ${noticia.titulo}\n` +
+            `📊 *Sentimento:* ${noticia.sentimento.toUpperCase()}\n` +
+            `🔗 *Link:* ${noticia.link}\n\n` +
+            `_Enviado via Painel OPINFO NEWS`
+        );
+
+        const div = document.createElement("div");
+        div.className = `item ${noticia.sentimento}`;
+        div.innerHTML = `
+            <a href="${noticia.link}" target="_blank">${noticia.sentimento === 'negativa' ? '🚨 ' : ''}${noticia.titulo}</a>
+            <div class="source-label">
+                <span class="tag-sentimento" style="background:${noticia.sentimento === 'negativa' ? '#fdecea' : noticia.sentimento === 'positiva' ? '#e6f4ea' : '#f1f3f4'}; color:${noticia.sentimento === 'negativa' ? 'var(--google-red)' : noticia.sentimento === 'positiva' ? 'var(--google-green)' : 'var(--google-gray)'}">
+                    ${noticia.sentimento}
+                </span>
+                <b>${noticia.fonte}</b> • ${noticia.data}
+                
+                <a href="https://api.whatsapp.com/send?text=${textoWhatsapp}" target="_blank" style="display: inline-flex; align-items: center; margin-left: auto; text-decoration: none; color: #25D366; font-weight: bold; font-size: 12px;">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 5px;">
+                        <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
+                    </svg>
+                    WhatsApp
+                </a>
+            </div>
+        `;
+        list.appendChild(div);
+    });
+
+    document.getElementById("count-total").innerText = db.length;
+    document.getElementById("count-neg").innerText = cNeg;
+    document.getElementById("count-pos").innerText = cPos;
+    document.getElementById("count-neu").innerText = cNeu;
 }
 
-window.onload = () => {
-    if(localStorage.getItem("autenticado")){
-        document.getElementById("loginScreen").style.display = "none";
-        const cache = localStorage.getItem("cache_noticias");
-        if(cache) {
-            document.getElementById("list").innerHTML = cache;
-            document.querySelectorAll("#list a").forEach(a => noticiasVistas.add(a.href));
+        async function ciclo() {
+            const alvo = document.getElementById("alvo").value;
+            if (!alvo) return;
+
+            document.getElementById("status").innerText = "🔄 Sincronizando com redes sociais e portais...";
+
+            const bar = document.getElementById("progressBar");
+            bar.style.transition = 'none';
+            bar.style.width = '0%';
+
+            const redes = ["", "youtube.com", "x.com", "instagram.com", "facebook.com"];
+            const resultados = await Promise.all(redes.map(r => capturarDados(alvo, r)));
+
+            let novaEncontrada = false;
+            let ultimaMsg = "";
+
+            resultados.flat().forEach(item => {
+                if (!db.find(existente => existente.link === item.link)) {
+                    const dataFormatada = new Date(item.pubDate).toLocaleDateString("pt-BR", {
+                        day: '2-digit',
+                        month: 'long',
+                        year: 'numeric'
+                    });
+                    db.push({
+                        titulo: item.title,
+                        link: item.link,
+                        data: dataFormatada,
+                        sentimento: processarSentimento(item.title),
+                        fonte: item.link.includes("youtube") ? "YouTube" : item.link.includes("x.com") ? "X" : item.link.includes("instagram") ? "Instagram" : item.link.includes("facebook") ? "Facebook" : "Portal News"
+                    });
+                    novaEncontrada = true;
+                    ultimaMsg = item.title;
+                }
+            });
+
+            if (novaEncontrada) {
+                localStorage.setItem("db_monitoramento", JSON.stringify(db));
+                atualizarPainel();
+                somSirene.play().catch(() => {});
+                if (Notification.permission === "granted") {
+                    new Notification("✨ Nova Atualização OSINT", {
+                        body: ultimaMsg,
+                        icon: "https://zeus-rr.github.io/osint/simbolo.ico"
+                    });
+                }
+            }
+
+            document.getElementById("status").innerText = "⏳ Monitoramento em Tempo Real Ativo";
+            setTimeout(() => {
+                bar.style.transition = 'width 60s linear';
+                bar.style.width = '100%';
+            }, 100);
         }
+
+        /* --- COMANDOS DE SISTEMA --- */
+        function iniciarSistema() {
+            if (!document.getElementById("alvo").value) return alert("Defina um alvo!");
+
+            if ("Notification" in window) Notification.requestPermission();
+            somSirene.play().then(() => {
+                somSirene.pause();
+                somSirene.currentTime = 0;
+            });
+
+            document.querySelector(".timer-container").style.display = "block";
+            if (loopMonitor) clearInterval(loopMonitor);
+            ciclo();
+            loopMonitor = setInterval(ciclo, 60000);
+        }
+
+        function limparHistorico() {
+            if (confirm("Tem certeza que deseja apagar todos os registros do monitoramento?")) {
+                db = [];
+                localStorage.removeItem("db_monitoramento");
+                atualizarPainel();
+            }
+        }
+		
+		// Bloquear clique direito
+document.addEventListener('contextmenu', event => event.preventDefault());
+
+// Bloquear atalhos de desenvolvedor (F12, Ctrl+Shift+I, Ctrl+U)
+document.onkeydown = function(e) {
+    if (e.keyCode == 123 || 
+        (e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) || e.keyCode == 'J'.charCodeAt(0))) || 
+        (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0))) {
+        return false;
     }
 };
 
-async function liberarAcesso(){
-    const s = document.getElementById("senha").value;
-    if(await gerarHash(s) === HASH_AUTORIZADO){
-        localStorage.setItem("autenticado", "true");
-        document.getElementById("loginScreen").style.display = "none";
-        somNotificacao.play().catch(() => {}); 
-    } else { alert("Senha Incorreta!"); }
-}
-
-/* ================= INTEGRAÇÃO WHATSAPP ================= */
-async function enviarWhatsApp(msg) {
-    if(WHATSAPP_API_KEY === "SUA_API_KEY_AQUI") return;
-    const url = `https://api.callmebot.com/whatsapp.php?phone=${WHATSAPP_FONE}&text=${encodeURIComponent(msg)}&apikey=${WHATSAPP_API_KEY}`;
-    try { await fetch(url, { mode: 'no-cors' }); } catch (e) { console.error("Erro WhatsApp", e); }
-}
-
-/* ================= MONITORAMENTO ================= */
-function iniciarSistema(){
-    const alvo = document.getElementById("alvo").value;
-    if(!alvo) return alert("Por favor, digite um alvo!");
-    
-    document.getElementById("list").innerHTML = "";
-    noticiasVistas.clear();
-    localStorage.removeItem("cache_noticias");
-    ciclo();
-}
-
-function limparSistema() {
-    if(confirm("Deseja limpar todos os dados e o cache?")) {
-        clearInterval(timerInterval);
-        document.getElementById("list").innerHTML = "";
-        noticiasVistas.clear();
-        localStorage.removeItem("cache_noticias");
-        document.getElementById("pContainer").style.display = "none";
-        document.getElementById("status").innerText = "Aguardando novo comando...";
-    }
-}
-
-async function ciclo(){
-    const alvo = document.getElementById("alvo").value;
-    const per = document.getElementById("periodo").value;
-    const q = per ? `${alvo} when:${per}` : alvo;
-    const url = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(`https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=pt-BR&gl=BR&ceid=BR:pt`)}`;
-    
-    document.getElementById("status").innerText = "🔄 Sincronizando rede...";
-
-    try {
-        const res = await fetch(url);
-        const data = await res.json();
-        let encontrouNova = false;
-
-        if(data.items) {
-            data.items.reverse().forEach(item => {
-                if(!noticiasVistas.has(item.link)){
-                    const isNeg = ["processo", "crime", "fraude", "negativa", "guerra", "justiça", "investigação", "mentira", "homofobia", "feminicidio", "homicidio", "preconceito", "acusação", "preso", "irregular", "denúncia", "polícia", "réu", "corrupção", "bloqueio", "escândalo"].some(t => item.title.toLowerCase().includes(t));
-                    render(item.title, item.link, item.pubDate, isNeg);
-                    encontrouNova = true;
-                }
-            });
-            if(encontrouNova) somNotificacao.play().catch(() => {});
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("sw.js");
         }
-    } catch(e){ console.error(e); }
-    
-    tempoRestante = 60;
-    startTimer();
-}
-
-function render(t, l, d, neg){
-    noticiasVistas.add(l);
-    const div = document.createElement("div");
-    div.className = "item " + (neg ? "negativa" : "");
-    const dt = new Date(d).toLocaleDateString("pt-BR");
-    
-    div.innerHTML = `
-        <a href="${l}" target="_blank">${neg ? '🚨 ' : ''}${t}</a>
-        <small>📅 Publicado em: ${dt}</small>
-    `;
-    
-    const list = document.getElementById("list");
-    list.insertBefore(div, list.firstChild);
-    localStorage.setItem("cache_noticias", list.innerHTML);
-
-    // Alerta WhatsApp para notícias negativas
-    if(neg) {
-        enviarWhatsApp(`🚨 NOTÍCIA NEGATIVA ENCONTRADA:\n\n${t}\n\nLink: ${l}`);
-    }
-}
-
-/* ================= TIMER ================= */
-function startTimer(){
-    clearInterval(timerInterval);
-    document.getElementById("pContainer").style.display = "block";
-    timerInterval = setInterval(() => {
-        tempoRestante--;
-        document.getElementById("progressBar").style.width = (tempoRestante/60)*100 + "%";
-        document.getElementById("status").innerText = "Próxima varredura em " + tempoRestante + "s";
-        if(tempoRestante <= 0) {
-            clearInterval(timerInterval);
-            ciclo();
-        }
-    }, 1000);
-}
-
-if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("sw.js");
-}
-</script>
+    </script>
 </body>
+
 </html>
