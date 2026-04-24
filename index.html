@@ -11,99 +11,319 @@
 
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2563eb">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
+        /* ============================================
+           VARIAVEIS DE TEMA (Light / Dark)
+           ============================================ */
         :root {
-            --google-blue: #1a73e8;
-            --google-red: #d93025;
-            --google-green: #1e8e3e;
-            --google-gray: #5f6368;
-            --google-bg: #f8f9fa;
-            --google-card: #ffffff;
-            --google-text: #202124;
+            --primary: #1a73e8;
+            --primary-hover: #1765cc;
+            --red: #d93025;
+            --green: #1e8e3e;
+            --gray: #5f6368;
+            --bg: #f8f9fa;
+            --card: #ffffff;
+            --text: #202124;
+            --text-secondary: #5f6368;
+            --border: #dadce0;
             --border-radius: 16px;
+            --shadow: 0 1px 3px rgba(0,0,0,0.12);
+            --shadow-hover: 0 4px 12px rgba(0,0,0,0.08);
+            --input-focus: rgba(26,115,232,0.15);
+            --skeleton-bg: #e0e0e0;
+            --skeleton-shine: #f5f5f5;
+            --tag-neg-bg: #fdecea;
+            --tag-pos-bg: #e6f4ea;
+            --tag-neu-bg: #f1f3f4;
+            --header-bg: #ffffff;
+            --login-bg: #f8fafc;
+            --login-card-bg: #ffffff;
+            --credits-border: #e2e8f0;
+            --credits-text: #64748b;
+            --credits-strong: #1e293b;
+            --toast-bg: #323232;
+            --toast-text: #ffffff;
+            --progress-track: #e0e0e0;
+            --whatsapp: #25D366;
         }
+
+        [data-theme="dark"] {
+            --primary: #8ab4f8;
+            --primary-hover: #aecbfa;
+            --red: #f28b82;
+            --green: #81c995;
+            --gray: #9aa0a6;
+            --bg: #1a1a2e;
+            --card: #16213e;
+            --text: #e8eaed;
+            --text-secondary: #9aa0a6;
+            --border: #2d3748;
+            --shadow: 0 1px 3px rgba(0,0,0,0.4);
+            --shadow-hover: 0 4px 12px rgba(0,0,0,0.3);
+            --input-focus: rgba(138,180,248,0.2);
+            --skeleton-bg: #2d3748;
+            --skeleton-shine: #3d4a5c;
+            --tag-neg-bg: rgba(242,139,130,0.15);
+            --tag-pos-bg: rgba(129,201,149,0.15);
+            --tag-neu-bg: rgba(154,160,166,0.15);
+            --header-bg: #0f3460;
+            --login-bg: #1a1a2e;
+            --login-card-bg: #16213e;
+            --credits-border: #2d3748;
+            --credits-text: #9aa0a6;
+            --credits-strong: #e8eaed;
+            --toast-bg: #e8eaed;
+            --toast-text: #202124;
+            --progress-track: #2d3748;
+            --whatsapp: #25D366;
+        }
+
+        /* ============================================
+           RESET E BASE
+           ============================================ */
+        * { box-sizing: border-box; }
 
         body {
-            font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
-            background: var(--google-bg);
+            font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+            background: var(--bg);
             margin: 0;
-            color: var(--google-text);
+            color: var(--text);
             line-height: 1.5;
+            transition: background 0.3s, color 0.3s;
         }
 
-        /* --- TELA DE LOGIN --- */
+        /* ============================================
+           TOAST NOTIFICATIONS
+           ============================================ */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10001;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: var(--toast-bg);
+            color: var(--toast-text);
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: toastIn 0.3s ease-out;
+            pointer-events: auto;
+            max-width: 380px;
+            word-break: break-word;
+        }
+
+        .toast.toast-exit {
+            animation: toastOut 0.3s ease-in forwards;
+        }
+
+        .toast-error { border-left: 4px solid var(--red); }
+        .toast-success { border-left: 4px solid var(--green); }
+        .toast-info { border-left: 4px solid var(--primary); }
+        .toast-warning { border-left: 4px solid #f9ab00; }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes toastOut {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(40px); }
+        }
+
+        /* ============================================
+           SKELETON LOADING
+           ============================================ */
+        .skeleton {
+            background: linear-gradient(90deg, var(--skeleton-bg) 25%, var(--skeleton-shine) 50%, var(--skeleton-bg) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+        }
+        .skeleton-title { height: 20px; width: 75%; margin-bottom: 12px; }
+        .skeleton-line { height: 14px; width: 50%; }
+        .skeleton-card {
+            padding: 25px;
+            margin-bottom: 15px;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border);
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* ============================================
+           TELA DE LOGIN
+           ============================================ */
         #loginScreen {
             position: fixed;
             inset: 0;
-            background: #f8fafc;
+            background: var(--login-bg);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 9999;
+            transition: background 0.3s;
         }
 
         .login-card {
-            background: white;
+            background: var(--login-card-bg);
             padding: 40px;
             border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            box-shadow: var(--shadow);
             text-align: center;
             width: 90%;
-            max-width: 350px;
+            max-width: 380px;
+            border: 1px solid var(--border);
         }
+
+        .login-card h2 { color: var(--text); }
 
         .creditos {
             margin-top: 30px;
             text-align: center;
-            color: #64748b;
+            color: var(--credits-text);
             font-size: 13px;
             line-height: 1.5;
-            border-top: 1px solid #e2e8f0;
+            border-top: 1px solid var(--credits-border);
             padding-top: 15px;
             width: 100%;
         }
-
         .creditos strong {
-            color: #1e293b;
+            color: var(--credits-strong);
             display: block;
             margin-bottom: 2px;
         }
 
-        /* --- CABEÇALHO --- */
+        /* ============================================
+           CABECALHO
+           ============================================ */
         header {
-            background: white;
-            padding: 12px 24px;
-            border-bottom: 1px solid #dadce0;
+            background: var(--header-bg);
+            padding: 10px 24px;
+            border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
             position: sticky;
             top: 0;
             z-index: 100;
+            transition: background 0.3s;
         }
 
+        .header-inner {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            max-width: 960px;
+            margin: 0 auto;
+            gap: 12px;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            color: var(--text);
+        }
+
+        .header-actions {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .icon-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s;
+            font-size: 18px;
+        }
+        .icon-btn:hover {
+            background: var(--input-focus);
+            color: var(--primary);
+            box-shadow: none;
+        }
+        .icon-btn.active { color: var(--primary); }
+
+        .btn-logout {
+            background: transparent;
+            color: var(--red);
+            border: 1px solid var(--red);
+            font-size: 12px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-logout:hover { background: rgba(217,48,37,0.08); box-shadow: none; }
+
+        /* ============================================
+           CONTAINER PRINCIPAL
+           ============================================ */
         .container {
-            max-width: 900px;
+            max-width: 960px;
             margin: 0 auto;
             padding: 0 15px;
         }
 
-        /* --- CONTROLES --- */
+        /* ============================================
+           CONTROLES
+           ============================================ */
         .controls {
             margin: 25px auto;
-            text-align: center;
-            background: white;
-            padding: 20px;
+            background: var(--card);
+            padding: 24px;
             border-radius: var(--border-radius);
-            border: 1px solid #dadce0;
+            border: 1px solid var(--border);
+            transition: background 0.3s;
+        }
+
+        .controls-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .controls-row-secondary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            margin-top: 12px;
         }
 
         .timer-container {
             width: 100%;
             height: 4px;
-            background: #e0e0e0;
-            margin: 20px 0 10px 0;
+            background: var(--progress-track);
+            margin: 16px 0 6px 0;
             border-radius: 2px;
             overflow: hidden;
             display: none;
@@ -112,71 +332,168 @@
         #progressBar {
             width: 0%;
             height: 100%;
-            background: var(--google-blue);
+            background: var(--primary);
             transition: width 1s linear;
         }
 
-        input,
-        select {
-            padding: 12px;
-            margin: 5px;
-            width: 240px;
-            border: 1px solid #dadce0;
+        input, select {
+            padding: 10px 14px;
+            margin: 0;
+            width: 220px;
+            border: 1px solid var(--border);
             border-radius: 8px;
             outline: none;
             font-size: 14px;
+            background: var(--card);
+            color: var(--text);
+            transition: border 0.2s, box-shadow 0.2s, background 0.3s;
+        }
+        input:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--input-focus);
+        }
+        input::placeholder { color: var(--text-secondary); }
+
+        .input-alvo {
+            flex: 1;
+            min-width: 180px;
+            max-width: 280px;
         }
 
-        input:focus {
-            border-color: var(--google-blue);
-            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.1);
+        .input-intervalo {
+            width: 130px;
         }
 
         button {
-            padding: 12px 28px;
-            background: var(--google-blue);
-            color: white;
+            padding: 10px 24px;
+            background: var(--primary);
+            color: #ffffff;
             border: none;
             border-radius: 24px;
             cursor: pointer;
             font-weight: 500;
-            transition: 0.3s;
+            font-size: 14px;
+            transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+            white-space: nowrap;
+        }
+        button:hover {
+            background: var(--primary-hover);
+            box-shadow: var(--shadow);
+        }
+        button:active { transform: scale(0.97); }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
-        button:hover {
-            background: #1765cc;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        [data-theme="dark"] button {
+            color: #1a1a2e;
         }
 
         .btn-clear {
             background: transparent;
-            color: var(--google-red);
-            border: 1px solid var(--google-red);
+            color: var(--red);
+            border: 1px solid var(--red);
         }
-
         .btn-clear:hover {
-            background: #fff1f0;
+            background: rgba(217,48,37,0.08);
+            box-shadow: none;
+        }
+        [data-theme="dark"] .btn-clear { color: var(--red); }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+        .btn-secondary:hover {
+            background: var(--input-focus);
+            box-shadow: none;
+        }
+        [data-theme="dark"] .btn-secondary { color: var(--primary); }
+
+        /* ============================================
+           HISTORICO DE ALVOS
+           ============================================ */
+        .target-history {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+            justify-content: center;
         }
 
-        /* --- DASHBOARD --- */
+        .target-chip {
+            background: var(--input-focus);
+            color: var(--primary);
+            border: none;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .target-chip:hover {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: none;
+        }
+
+        /* ============================================
+           INFO BAR (Ultima atualizacao + Countdown)
+           ============================================ */
+        .info-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            gap: 8px;
+        }
+
+        #status {
+            font-size: 13px;
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        /* ============================================
+           DASHBOARD E GRAFICO
+           ============================================ */
+        .chart-container {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 25px;
+            max-height: 300px;
+            display: flex;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
         }
 
         .stat-card {
-            background: white;
-            padding: 20px;
+            background: var(--card);
+            padding: 18px;
             border-radius: 12px;
-            border: 1px solid #dadce0;
+            border: 1px solid var(--border);
             text-align: center;
+            transition: background 0.3s, transform 0.2s;
         }
+        .stat-card:hover { transform: translateY(-2px); }
 
         .stat-label {
-            font-size: 13px;
-            color: var(--google-gray);
+            font-size: 11px;
+            color: var(--text-secondary);
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -185,52 +502,98 @@
             font-size: 28px;
             font-weight: bold;
             display: block;
-            margin-top: 5px;
+            margin-top: 4px;
         }
 
-        .stat-total { color: var(--google-blue); }
-        .stat-neg { color: var(--google-red); }
-        .stat-pos { color: var(--google-green); }
-        .stat-neu { color: var(--google-gray); }
+        .stat-total { color: var(--primary); }
+        .stat-neg { color: var(--red); }
+        .stat-pos { color: var(--green); }
+        .stat-neu { color: var(--gray); }
 
-        /* --- LISTAGEM --- */
-        .item {
-            background: white;
-            padding: 25px;
+        /* ============================================
+           BARRA DE FILTROS / BUSCA / EXPORT
+           ============================================ */
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
             margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .filter-bar input {
+            flex: 1;
+            min-width: 160px;
+            max-width: 300px;
+        }
+
+        .filter-bar select {
+            width: auto;
+            min-width: 140px;
+        }
+
+        .export-group {
+            display: flex;
+            gap: 6px;
+            margin-left: auto;
+        }
+
+        .btn-export {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .btn-export:hover {
+            background: var(--input-focus);
+            color: var(--primary);
+            box-shadow: none;
+        }
+
+        /* ============================================
+           LISTAGEM DE NOTICIAS
+           ============================================ */
+        .item {
+            background: var(--card);
+            padding: 20px 24px;
+            margin-bottom: 12px;
             border-radius: var(--border-radius);
-            border: 1px solid #dadce0;
-            transition: transform 0.2s;
+            border: 1px solid var(--border);
+            transition: transform 0.2s, box-shadow 0.2s, background 0.3s;
             animation: slideUp 0.4s ease-out;
         }
-
         .item:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            box-shadow: var(--shadow-hover);
         }
 
         @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .item a {
+        .item a.item-title {
             text-decoration: none;
-            color: var(--google-text);
-            font-size: 18px;
+            color: var(--text);
+            font-size: 16px;
             font-weight: 500;
             display: block;
             margin-bottom: 10px;
+            line-height: 1.4;
         }
-
-        .item a:hover { color: var(--google-blue); }
+        .item a.item-title:hover { color: var(--primary); }
 
         .source-label {
             font-size: 12px;
-            color: var(--google-gray);
+            color: var(--text-secondary);
             display: flex;
             align-items: center;
             gap: 8px;
+            flex-wrap: wrap;
         }
 
         .tag-sentimento {
@@ -241,28 +604,107 @@
             text-transform: uppercase;
         }
 
-        .item.negativa { border-left: 8px solid var(--google-red); }
-        .item.positiva { border-left: 8px solid var(--google-green); }
-        .item.neutra { border-left: 8px solid #cbd5e1; }
+        .item.negativa { border-left: 6px solid var(--red); }
+        .item.positiva { border-left: 6px solid var(--green); }
+        .item.neutra { border-left: 6px solid var(--gray); }
 
-        #status {
-            font-size: 13px;
-            color: var(--google-blue);
-            margin-top: 10px;
-            font-weight: 500;
+        .whatsapp-link {
+            display: inline-flex;
+            align-items: center;
+            margin-left: auto;
+            text-decoration: none;
+            color: var(--whatsapp);
+            font-weight: bold;
+            font-size: 12px;
+            gap: 4px;
         }
+        .whatsapp-link:hover { opacity: 0.8; }
+
+        /* ============================================
+           PAGINACAO
+           ============================================ */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin: 20px 0 40px 0;
+        }
+        .pagination button {
+            padding: 8px 16px;
+            font-size: 13px;
+            border-radius: 8px;
+        }
+        .pagination .page-info {
+            font-size: 13px;
+            color: var(--text-secondary);
+            min-width: 100px;
+            text-align: center;
+        }
+
+        /* ============================================
+           RESPONSIVIDADE MOBILE
+           ============================================ */
+        @media (max-width: 640px) {
+            header { padding: 8px 12px; }
+            .header-brand { font-size: 16px; }
+            .container { padding: 0 10px; }
+            .controls { padding: 16px; }
+            .controls-row { flex-direction: column; }
+            .controls-row input,
+            .controls-row select,
+            .controls-row button {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            .input-alvo, .input-intervalo { max-width: 100% !important; width: 100% !important; }
+            .controls-row-secondary { flex-direction: column; }
+            .controls-row-secondary button { width: 100%; }
+            .filter-bar { flex-direction: column; }
+            .filter-bar input, .filter-bar select { max-width: 100%; width: 100% !important; }
+            .export-group { margin-left: 0; width: 100%; }
+            .export-group .btn-export { flex: 1; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .stat-val { font-size: 22px; }
+            .item { padding: 16px; }
+            .source-label { flex-wrap: wrap; }
+            .whatsapp-link { margin-left: 0; margin-top: 6px; }
+            .toast { max-width: 90vw; right: 5vw; }
+            .pagination button { padding: 6px 12px; font-size: 12px; }
+        }
+
+        /* ============================================
+           SCROLLBAR CUSTOM (Dark mode)
+           ============================================ */
+        [data-theme="dark"] ::-webkit-scrollbar { width: 8px; }
+        [data-theme="dark"] ::-webkit-scrollbar-track { background: var(--bg); }
+        [data-theme="dark"] ::-webkit-scrollbar-thumb { background: #3d4a5c; border-radius: 4px; }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--text-secondary);
+        }
+        .empty-state-icon { font-size: 48px; margin-bottom: 10px; }
     </style>
 </head>
 
 <body>
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
 
+    <!-- ============================================
+         TELA DE LOGIN
+         ============================================ -->
     <div id="loginScreen">
         <div class="login-card">
-            <img src="https://zeus-rr.github.io/osint/simbolo.ico" width="50" style="margin-bottom:15px">
+            <h2 style="margin-top:0">Sistema de Acompanhamento e Monitoramento do Ambiente Informacional (SAMAI)</h2>
+            <img src="https://zeus-rr.github.io/osint/simbolo.ico" width="50" style="margin-bottom:15px" alt="OpInfo Logo">
             <h2 style="margin-top:0">Acesso Restrito</h2>
-            <input id="senha" type="password" placeholder="Senha do Sistema">
-            <button onclick="liberarAcesso()" style="width:100%; margin-top:15px;">Entrar no Painel</button>
-
+            <input id="senha" type="password" placeholder="Senha do Sistema" style="width:100%;margin-bottom:10px"
+                onkeydown="if(event.key==='Enter') app.auth.login()">
+            <button onclick="app.auth.login()" style="width:100%;margin-top:5px;">Entrar no Painel</button>
             <div class="creditos">
                 Criado e desenvolvido por<br>
                 <strong>Rafael RDS</strong>
@@ -271,31 +713,69 @@
         </div>
     </div>
 
+    <!-- ============================================
+         CABECALHO
+         ============================================ -->
     <header>
-        <div class="container" style="display:flex; align-items:center; width:100%">
-            <img src="https://zeus-rr.github.io/osint/simbolo.ico" width="32" style="margin-right:12px">
-         	<span style="font-size:20px; letter-spacing:-0.5px">OpInfo<b>News</b></span>
+        <div class="header-inner">
+            <div class="header-brand">
+                <img src="https://zeus-rr.github.io/osint/simbolo.ico" width="30" alt="Logo">
+                <span>OpInfo News Sistema de Acompanhamento e Monitoramento do Ambiente Informacional (SAMAI)</span>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" id="btnSound" onclick="app.toggleSound()" title="Som on/off">&#128264;</button>
+                <button class="icon-btn" id="btnDarkMode" onclick="app.toggleDarkMode()" title="Alternar tema">&#9789;</button>
+                <button class="btn-logout" onclick="app.auth.logout()">Sair</button>
+            </div>
         </div>
     </header>
 
+    <!-- ============================================
+         CONTEUDO PRINCIPAL
+         ============================================ -->
     <div class="container">
-        <div class="controls">
-            <input id="alvo" placeholder="Digite o nome do alvo">
-            <select id="periodo">
-                <option value="">Todo o Histórico</option>
-                <option value="1d">Últimas 24 Horas</option>
-                <option value="7d">Últimos 7 Dias</option>
-                <option value="1m">Último Mês</option>
-            </select>
-            <button onclick="iniciarSistema()">Iniciar Monitoramento</button>
-            <button class="btn-clear" onclick="limparHistorico()">Limpar Dados</button>
 
-            <div class="timer-container">
+        <!-- Controles de monitoramento -->
+        <div class="controls">
+            <div class="controls-row">
+                <input id="alvo" class="input-alvo" placeholder="Digite os alvos (separe com virgula)" title="Ex: Lula, Bolsonaro, Bitcoin">
+                <select id="periodo">
+                    <option value="">Todo o Historico</option>
+                    <option value="1d">Ultimas 24 Horas</option>
+                    <option value="7d">Ultimos 7 Dias</option>
+                    <option value="1m">Ultimo Mes</option>
+                </select>
+                <input id="intervalo" class="input-intervalo" type="number" min="10" max="600" value="60" placeholder="Seg." title="Intervalo em segundos (min: 10)">
+                <button onclick="app.monitor.start()">Iniciar</button>
+            </div>
+
+            <div class="controls-row-secondary">
+                <button class="btn-secondary" onclick="app.monitor.stop()">Parar</button>
+                <button class="btn-clear" onclick="app.clearData()">Limpar Dados</button>
+            </div>
+
+            <!-- Historico de alvos -->
+            <div id="targetHistory" class="target-history"></div>
+
+            <!-- Barra de progresso -->
+            <div class="timer-container" id="timerContainer">
                 <div id="progressBar"></div>
             </div>
-            <p id="status"></p>
+
+            <!-- Info: status + ultima atualizacao + countdown -->
+            <div class="info-bar">
+                <span id="status"></span>
+                <span id="lastUpdate"></span>
+                <span id="countdown"></span>
+            </div>
         </div>
 
+        <!-- Grafico de sentimento -->
+        <div class="chart-container">
+            <canvas id="sentimentoChart"></canvas>
+        </div>
+
+        <!-- Dashboard de estatisticas -->
         <div class="stats-grid">
             <div class="stat-card"><span class="stat-label">Monitoradas</span><span id="count-total" class="stat-val stat-total">0</span></div>
             <div class="stat-card"><span class="stat-label">Negativas</span><span id="count-neg" class="stat-val stat-neg">0</span></div>
@@ -303,208 +783,927 @@
             <div class="stat-card"><span class="stat-label">Neutras</span><span id="count-neu" class="stat-val stat-neu">0</span></div>
         </div>
 
+        <!-- Filtros e export -->
+        <div class="filter-bar">
+            <input id="searchFilter" placeholder="Buscar nas noticias..." oninput="app.ui.onSearchInput()">
+            <select id="sentimentFilter" onchange="app.ui.render()">
+                <option value="todas">Todas</option>
+                <option value="negativa">Negativas</option>
+                <option value="positiva">Positivas</option>
+                <option value="neutra">Neutras</option>
+            </select>
+            <div class="export-group">
+                <button class="btn-export" onclick="app.exportCSV()">Exportar CSV</button>
+                <button class="btn-export" onclick="app.exportJSON()">Exportar JSON</button>
+            </div>
+        </div>
+
+        <!-- Lista de noticias -->
         <div id="list"></div>
+
+        <!-- Paginacao -->
+        <div class="pagination" id="paginationControls" style="display:none">
+            <button onclick="app.ui.prevPage()">&#9664; Anterior</button>
+            <span class="page-info" id="pageInfo"></span>
+            <button onclick="app.ui.nextPage()">Proximo &#9654;</button>
+        </div>
     </div>
 
+    <!-- ============================================
+         JAVASCRIPT - Sistema Refatorado ES6
+         ============================================ -->
     <script>
-        /* --- CONFIGURAÇÕES GERAIS --- */
-        const HASH_SISTEMA = "b4ae89535a430bfa612afcb9ec705cb4e5c1539e"; // Senha: admin
-        let db = JSON.parse(localStorage.getItem("db_monitoramento") || "[]");
-        let loopMonitor = null;
-        const somSirene = new Audio('https://www.soundjay.com/buttons/sounds/beep-01a.mp3');
+    (() => {
+        'use strict';
 
-        /* --- AUTENTICAÇÃO --- */
-        async function gerarHash(str) {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(str);
-            const hash = await crypto.subtle.digest('SHA-1', data);
-            return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
-        }
+        /* ============================================
+           CONSTANTES
+           ============================================ */
+        // SHA-256 de ""
+        const HASH_SISTEMA = '254624947d569d20b62d1bc5fca1c8858e6c0fdfdf4db40204b83d86175b9d0b';
+        const SESSION_KEY = 'opinfo_session';
+        const DB_KEY = 'db_monitoramento';
+        const THEME_KEY = 'opinfo_theme';
+        const SOUND_KEY = 'opinfo_sound';
+        const TARGETS_KEY = 'opinfo_targets_history';
+        const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 horas
+        const ITEMS_PER_PAGE = 20;
+        const MAX_RETRIES = 3;
+        const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
+        const DEBOUNCE_DELAY = 300;
 
-        window.onload = () => {
-            if (localStorage.getItem("sessao_ativa")) {
-                document.getElementById("loginScreen").style.display = "none";
-                atualizarPainel();
+        const SIREN_URL = 'https://cdn.pixabay.com/audio/2022/03/10/audio_5103a8908f.mp3';
+
+        /* ============================================
+           CLASSE: ToastManager
+           Notificacoes toast no lugar de alert()
+           ============================================ */
+        class ToastManager {
+            constructor(containerId) {
+                this.container = document.getElementById(containerId);
             }
-        };
 
-        async function liberarAcesso() {
-            const s = document.getElementById("senha").value;
-            if (await gerarHash(s) === HASH_SISTEMA) {
-                localStorage.setItem("sessao_ativa", "true");
-                document.getElementById("loginScreen").style.display = "none";
-            } else {
-                alert("Senha incorreta.");
+            /** Exibe um toast com tipo: info, success, error, warning */
+            show(message, type = 'info', duration = 4000) {
+                const toast = document.createElement('div');
+                toast.className = `toast toast-${type}`;
+                toast.textContent = message;
+                this.container.appendChild(toast);
+                setTimeout(() => {
+                    toast.classList.add('toast-exit');
+                    toast.addEventListener('animationend', () => toast.remove());
+                }, duration);
+            }
+
+            info(msg) { this.show(msg, 'info'); }
+            success(msg) { this.show(msg, 'success'); }
+            error(msg) { this.show(msg, 'error'); }
+            warning(msg) { this.show(msg, 'warning'); }
+        }
+
+        /* ============================================
+           CLASSE: AuthManager
+           Autenticacao com SHA-256 e sessao com expiracao
+           ============================================ */
+        class AuthManager {
+            constructor(toast) {
+                this.toast = toast;
+            }
+
+            /** Gera hash SHA-256 de uma string */
+            async hashSHA256(str) {
+                const data = new TextEncoder().encode(str);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                return Array.from(new Uint8Array(hashBuffer))
+                    .map(b => b.toString(16).padStart(2, '0'))
+                    .join('');
+            }
+
+            /** Verifica se a sessao ainda e valida (menos de 24h) */
+            isSessionValid() {
+                const session = localStorage.getItem(SESSION_KEY);
+                if (!session) return false;
+                try {
+                    const { timestamp } = JSON.parse(session);
+                    return (Date.now() - timestamp) < SESSION_DURATION_MS;
+                } catch {
+                    return false;
+                }
+            }
+
+            /** Tenta fazer login */
+            async login() {
+                const input = document.getElementById('senha');
+                const password = input.value.trim();
+                if (!password) {
+                    this.toast.warning('Digite a senha.');
+                    return;
+                }
+                const hash = await this.hashSHA256(password);
+                if (hash === HASH_SISTEMA) {
+                    localStorage.setItem(SESSION_KEY, JSON.stringify({ timestamp: Date.now() }));
+                    document.getElementById('loginScreen').style.display = 'none';
+                    this.toast.success('Acesso autorizado.');
+                    app.init();
+                } else {
+                    this.toast.error('Senha incorreta.');
+                    input.value = '';
+                    input.focus();
+                }
+            }
+
+            /** Encerra a sessao */
+            logout() {
+                localStorage.removeItem(SESSION_KEY);
+                location.reload();
             }
         }
 
-        /* --- MOTOR DE BUSCA --- */
-        function processarSentimento(texto) {
-            const termosNeg = ["processo", "crime", "fraude", "justiça", "homicidio", "feminicidio", "morte", "grave", "punição", "medo", "investigação", "acusação", "preso", "denúncia", "polícia", "escândalo", "corrupção", "irregular", "réu", "stf", "cpi", "multa"];
-            const termosPos = ["sucesso", "vitória", "ganha", "lidera", "conquista", "expande", "desenvolvimento", "crescimneto", "melhor", "premiado", "cresce", "acordo", "benefício", "inovação", "lucro"];
-            const t = texto.toLowerCase();
-            if (termosNeg.some(w => t.includes(w))) return "negativa";
-            if (termosPos.some(w => t.includes(w))) return "positiva";
-            return "neutra";
-        }
+        /* ============================================
+           CLASSE: CacheManager
+           Cache com TTL para evitar re-fetch
+           ============================================ */
+        class CacheManager {
+            constructor(ttl) {
+                this.ttl = ttl;
+                this.store = new Map();
+            }
 
-        async function capturarDados(alvo, rede = "") {
-            let query = rede ? `${alvo} site:${rede}` : alvo;
-            const p = document.getElementById("periodo").value;
-            if (p) query += ` when:${p}`;
+            /** Retorna dados do cache se validos, ou null */
+            get(key) {
+                const entry = this.store.get(key);
+                if (!entry) return null;
+                if (Date.now() - entry.timestamp > this.ttl) {
+                    this.store.delete(key);
+                    return null;
+                }
+                return entry.data;
+            }
 
-            const api = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(`https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=pt-BR&gl=BR&ceid=BR:pt`)}`;
+            /** Salva dados no cache */
+            set(key, data) {
+                this.store.set(key, { data, timestamp: Date.now() });
+            }
 
-            try {
-                const res = await fetch(api);
-                const json = await res.json();
-                return json.items || [];
-            } catch (e) {
-                return [];
+            /** Limpa todo o cache */
+            clear() {
+                this.store.clear();
             }
         }
 
-function atualizarPainel() {
-    const list = document.getElementById("list");
-    list.innerHTML = "";
+        /* ============================================
+           CLASSE: SentimentAnalyzer
+           Analise de sentimento com termos ponderados
+           ============================================ */
+        class SentimentAnalyzer {
+            constructor() {
+                // Termos negativos com pesos (maior peso = mais impactante)
+                this.negTerms = {
+                    // Criminais e juridicos (peso alto)
+                    'homicidio': 3, 'feminicidio': 3, 'assassinato': 3, 'morte': 3,
+                    'preso': 3, 'condenado': 3, 'crime': 3, 'estupro': 3,
+                    'massacre': 3, 'atentado': 3, 'terrorismo': 3,
+                    // Juridicos (peso medio-alto)
+                    'processo': 2, 'fraude': 2, 'corrupcao': 2, 'corrupção': 2,
+                    'escandalo': 2, 'escândalo': 2, 'irregular': 2, 'ilegal': 2,
+                    'denuncia': 2, 'denúncia': 2, 'acusacao': 2, 'acusação': 2,
+                    'reu': 2, 'réu': 2, 'cassado': 2, 'impeachment': 2,
+                    'propina': 2, 'lavagem': 2, 'desvio': 2, 'peculato': 2,
+                    // Institucionais
+                    'cpi': 2, 'stf': 1, 'investigacao': 2, 'investigação': 2,
+                    'policia': 2, 'polícia': 2, 'multa': 1, 'punicao': 2,
+                    'punição': 2, 'justica': 1, 'justiça': 1, 'embargo': 2,
+                    // Crises e problemas
+                    'crise': 2, 'colapso': 2, 'falencia': 2, 'falência': 2,
+                    'prejuizo': 2, 'prejuízo': 2, 'divida': 1, 'dívida': 1,
+                    'inflacao': 1, 'inflação': 1, 'recessao': 2, 'recessão': 2,
+                    'desemprego': 2, 'demissao': 1, 'demissão': 1,
+                    // Sentimentos negativos
+                    'medo': 1, 'panico': 2, 'pânico': 2, 'grave': 2,
+                    'tragedia': 2, 'tragédia': 2, 'desastre': 2, 'catastrofe': 2,
+                    'protesto': 1, 'violencia': 2, 'violência': 2,
+                    'repudio': 2, 'repúdio': 2, 'revolta': 1
+                };
 
-    let cNeg = 0, cPos = 0, cNeu = 0;
+                // Termos positivos com pesos
+                this.posTerms = {
+                    // Conquistas e lideranca (peso alto)
+                    'vitoria': 3, 'vitória': 3, 'conquista': 3, 'campeao': 3,
+                    'campeão': 3, 'recorde': 3, 'premiado': 3, 'premio': 2,
+                    'prêmio': 2, 'medalha': 3, 'titulo': 2, 'título': 2,
+                    // Crescimento e economia
+                    'sucesso': 2, 'crescimento': 2, 'expande': 2, 'expansao': 2,
+                    'expansão': 2, 'lucro': 2, 'inovacao': 2, 'inovação': 2,
+                    'desenvolvimento': 2, 'investimento': 1, 'recorde': 2,
+                    // Positivos gerais
+                    'ganha': 1, 'lidera': 1, 'melhor': 1, 'acordo': 1,
+                    'beneficio': 1, 'benefício': 1, 'avanco': 2, 'avanço': 2,
+                    'progresso': 2, 'melhora': 1, 'aprovado': 1, 'aprovacao': 1,
+                    'aprovação': 1, 'cresce': 1, 'alta': 1, 'positivo': 1,
+                    // Sociais
+                    'solidariedade': 2, 'doacao': 2, 'doação': 2, 'voluntario': 1,
+                    'voluntário': 1, 'homenagem': 1, 'celebracao': 2, 'celebração': 2,
+                    'paz': 2, 'educacao': 1, 'educação': 1, 'saude': 1, 'saúde': 1
+                };
+            }
 
-    [...db].reverse().forEach(noticia => {
-        if (noticia.sentimento === "negativa") cNeg++;
-        else if (noticia.sentimento === "positiva") cPos++;
-        else cNeu++;
+            /** Analisa o sentimento de um texto retornando 'negativa', 'positiva' ou 'neutra' */
+            analyze(text) {
+                const t = text.toLowerCase()
+                    .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Remove acentos para matching
+                const tOriginal = text.toLowerCase(); // Manter original para termos acentuados
 
-        // Prepara a mensagem para o WhatsApp
-        const textoWhatsapp = encodeURIComponent(
-            `*OpInfo News - Alerta de Monitoramento*\n\n` +
-            `📢 *Título:* ${noticia.titulo}\n` +
-            `📊 *Sentimento:* ${noticia.sentimento.toUpperCase()}\n` +
-            `🔗 *Link:* ${noticia.link}\n\n` +
-            `_Enviado via Painel OPINFO NEWS`
-        );
+                let negScore = 0;
+                let posScore = 0;
 
-        const div = document.createElement("div");
-        div.className = `item ${noticia.sentimento}`;
-        div.innerHTML = `
-            <a href="${noticia.link}" target="_blank">${noticia.sentimento === 'negativa' ? '🚨 ' : ''}${noticia.titulo}</a>
-            <div class="source-label">
-                <span class="tag-sentimento" style="background:${noticia.sentimento === 'negativa' ? '#fdecea' : noticia.sentimento === 'positiva' ? '#e6f4ea' : '#f1f3f4'}; color:${noticia.sentimento === 'negativa' ? 'var(--google-red)' : noticia.sentimento === 'positiva' ? 'var(--google-green)' : 'var(--google-gray)'}">
-                    ${noticia.sentimento}
-                </span>
-                <b>${noticia.fonte}</b> • ${noticia.data}
-                
-                <a href="https://api.whatsapp.com/send?text=${textoWhatsapp}" target="_blank" style="display: inline-flex; align-items: center; margin-left: auto; text-decoration: none; color: #25D366; font-weight: bold; font-size: 12px;">
-                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 5px;">
-                        <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
-                    </svg>
-                    WhatsApp
-                </a>
-            </div>
-        `;
-        list.appendChild(div);
-    });
+                for (const [term, weight] of Object.entries(this.negTerms)) {
+                    const normalizedTerm = term.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                    if (t.includes(normalizedTerm) || tOriginal.includes(term)) {
+                        negScore += weight;
+                    }
+                }
 
-    document.getElementById("count-total").innerText = db.length;
-    document.getElementById("count-neg").innerText = cNeg;
-    document.getElementById("count-pos").innerText = cPos;
-    document.getElementById("count-neu").innerText = cNeu;
-}
+                for (const [term, weight] of Object.entries(this.posTerms)) {
+                    const normalizedTerm = term.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                    if (t.includes(normalizedTerm) || tOriginal.includes(term)) {
+                        posScore += weight;
+                    }
+                }
 
-        async function ciclo() {
-            const alvo = document.getElementById("alvo").value;
-            if (!alvo) return;
+                if (negScore === 0 && posScore === 0) return 'neutra';
+                if (negScore > posScore) return 'negativa';
+                if (posScore > negScore) return 'positiva';
+                return 'neutra'; // Empate = neutra
+            }
+        }
 
-            document.getElementById("status").innerText = "🔄 Sincronizando com redes sociais e portais...";
+        /* ============================================
+           CLASSE: UIManager
+           Gerencia toda a interface (render, paginacao, filtros)
+           ============================================ */
+        class UIManager {
+            constructor(toast) {
+                this.toast = toast;
+                this.currentPage = 1;
+                this.chart = null;
+                this._searchDebounceTimer = null;
+            }
 
-            const bar = document.getElementById("progressBar");
-            bar.style.transition = 'none';
-            bar.style.width = '0%';
+            /** Sanitiza HTML para prevenir XSS */
+            sanitize(str) {
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            }
 
-            const redes = ["", "youtube.com", "x.com", "instagram.com", "facebook.com"];
-            const resultados = await Promise.all(redes.map(r => capturarDados(alvo, r)));
+            /** Debounce na busca/filtro */
+            onSearchInput() {
+                clearTimeout(this._searchDebounceTimer);
+                this._searchDebounceTimer = setTimeout(() => {
+                    this.currentPage = 1;
+                    this.render();
+                }, DEBOUNCE_DELAY);
+            }
 
-            let novaEncontrada = false;
-            let ultimaMsg = "";
+            /** Filtra os dados de acordo com busca e sentimento */
+            getFilteredData() {
+                const searchTerm = (document.getElementById('searchFilter').value || '').toLowerCase().trim();
+                const sentimentFilter = document.getElementById('sentimentFilter').value;
 
-            resultados.flat().forEach(item => {
-                if (!db.find(existente => existente.link === item.link)) {
-                    const dataFormatada = new Date(item.pubDate).toLocaleDateString("pt-BR", {
-                        day: '2-digit',
-                        month: 'long',
-                        year: 'numeric'
+                let data = [...app.db].reverse();
+
+                if (sentimentFilter !== 'todas') {
+                    data = data.filter(n => n.sentimento === sentimentFilter);
+                }
+
+                if (searchTerm) {
+                    data = data.filter(n =>
+                        n.titulo.toLowerCase().includes(searchTerm) ||
+                        n.fonte.toLowerCase().includes(searchTerm)
+                    );
+                }
+
+                return data;
+            }
+
+            /** Exibe skeletons de carregamento */
+            showSkeletons(count = 5) {
+                const list = document.getElementById('list');
+                const fragment = document.createDocumentFragment();
+                for (let i = 0; i < count; i++) {
+                    const div = document.createElement('div');
+                    div.className = 'skeleton-card';
+                    div.innerHTML = '<div class="skeleton skeleton-title"></div><div class="skeleton skeleton-line"></div>';
+                    fragment.appendChild(div);
+                }
+                list.innerHTML = '';
+                list.appendChild(fragment);
+            }
+
+            /** Remove skeletons */
+            hideSkeletons() {
+                // render() substitui o conteudo
+            }
+
+            /** Renderiza o painel completo */
+            render() {
+                const filtered = this.getFilteredData();
+                const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+
+                // Ajusta pagina se necessario
+                if (this.currentPage > totalPages) this.currentPage = totalPages;
+
+                const start = (this.currentPage - 1) * ITEMS_PER_PAGE;
+                const pageItems = filtered.slice(start, start + ITEMS_PER_PAGE);
+
+                // Contagens gerais (sobre TODOS os dados, nao filtrados)
+                let cNeg = 0, cPos = 0, cNeu = 0;
+                app.db.forEach(n => {
+                    if (n.sentimento === 'negativa') cNeg++;
+                    else if (n.sentimento === 'positiva') cPos++;
+                    else cNeu++;
+                });
+
+                // Atualizar stats
+                document.getElementById('count-total').textContent = app.db.length;
+                document.getElementById('count-neg').textContent = cNeg;
+                document.getElementById('count-pos').textContent = cPos;
+                document.getElementById('count-neu').textContent = cNeu;
+
+                // Atualizar grafico
+                this.updateChart(cNeg, cPos, cNeu);
+
+                // Renderizar lista com DocumentFragment
+                const list = document.getElementById('list');
+                const fragment = document.createDocumentFragment();
+
+                if (pageItems.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.className = 'empty-state';
+                    empty.innerHTML = '<div class="empty-state-icon">&#128269;</div><p>Nenhuma noticia encontrada.</p>';
+                    fragment.appendChild(empty);
+                } else {
+                    pageItems.forEach(noticia => {
+                        const safeTitle = this.sanitize(noticia.titulo);
+                        const safeLink = this.sanitize(noticia.link);
+                        const safeFonte = this.sanitize(noticia.fonte);
+                        const safeData = this.sanitize(noticia.data);
+
+                        const textoWhatsapp = encodeURIComponent(
+                            `*OpInfo News - Alerta de Monitoramento*\n\n` +
+                            `Titulo: ${noticia.titulo}\n` +
+                            `Sentimento: ${noticia.sentimento.toUpperCase()}\n` +
+                            `Link: ${noticia.link}\n\n` +
+                            `Enviado via Painel OPINFO NEWS`
+                        );
+
+                        const tagBg = noticia.sentimento === 'negativa' ? 'var(--tag-neg-bg)' :
+                                      noticia.sentimento === 'positiva' ? 'var(--tag-pos-bg)' : 'var(--tag-neu-bg)';
+                        const tagColor = noticia.sentimento === 'negativa' ? 'var(--red)' :
+                                         noticia.sentimento === 'positiva' ? 'var(--green)' : 'var(--gray)';
+                        const alertIcon = noticia.sentimento === 'negativa' ? '&#128680; ' : '';
+
+                        const div = document.createElement('div');
+                        div.className = `item ${noticia.sentimento}`;
+                        div.innerHTML = `
+                            <a class="item-title" href="${safeLink}" target="_blank" rel="noopener noreferrer">${alertIcon}${safeTitle}</a>
+                            <div class="source-label">
+                                <span class="tag-sentimento" style="background:${tagBg};color:${tagColor}">${noticia.sentimento}</span>
+                                <b>${safeFonte}</b> &bull; ${safeData}
+                                <a class="whatsapp-link" href="https://api.whatsapp.com/send?text=${textoWhatsapp}" target="_blank" rel="noopener noreferrer">
+                                    <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
+                                    </svg>
+                                    WhatsApp
+                                </a>
+                            </div>
+                        `;
+                        fragment.appendChild(div);
                     });
-                    db.push({
-                        titulo: item.title,
+                }
+
+                list.innerHTML = '';
+                list.appendChild(fragment);
+
+                // Paginacao
+                const paginationEl = document.getElementById('paginationControls');
+                if (filtered.length > ITEMS_PER_PAGE) {
+                    paginationEl.style.display = 'flex';
+                    document.getElementById('pageInfo').textContent = `Pagina ${this.currentPage} de ${totalPages}`;
+                    // Desabilitar botoes quando necessario
+                    const btns = paginationEl.querySelectorAll('button');
+                    btns[0].disabled = this.currentPage <= 1;
+                    btns[1].disabled = this.currentPage >= totalPages;
+                } else {
+                    paginationEl.style.display = 'none';
+                }
+
+                // Atualizar historico de alvos
+                this.renderTargetHistory();
+            }
+
+            /** Pagina anterior */
+            prevPage() {
+                if (this.currentPage > 1) {
+                    this.currentPage--;
+                    this.render();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            }
+
+            /** Proxima pagina */
+            nextPage() {
+                const filtered = this.getFilteredData();
+                const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+                if (this.currentPage < totalPages) {
+                    this.currentPage++;
+                    this.render();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            }
+
+            /** Atualiza ou cria o grafico de pizza */
+            updateChart(neg, pos, neu) {
+                const ctx = document.getElementById('sentimentoChart').getContext('2d');
+                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                const textColor = isDark ? '#e8eaed' : '#202124';
+
+                if (this.chart) {
+                    this.chart.data.datasets[0].data = [neg, pos, neu];
+                    this.chart.options.plugins.legend.labels.color = textColor;
+                    this.chart.options.plugins.title.color = textColor;
+                    this.chart.update();
+                } else {
+                    this.chart = new Chart(ctx, {
+                        type: 'pie',
+                        data: {
+                            labels: ['Negativas', 'Positivas', 'Neutras'],
+                            datasets: [{
+                                data: [neg, pos, neu],
+                                backgroundColor: ['#d93025', '#1e8e3e', '#5f6368'],
+                                borderWidth: 1,
+                                borderColor: isDark ? '#16213e' : '#ffffff'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: { color: textColor }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Distribuicao de Sentimento',
+                                    color: textColor
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+            /** Renderiza chips do historico de alvos */
+            renderTargetHistory() {
+                const container = document.getElementById('targetHistory');
+                const history = JSON.parse(localStorage.getItem(TARGETS_KEY) || '[]');
+                if (history.length === 0) {
+                    container.innerHTML = '';
+                    return;
+                }
+
+                const fragment = document.createDocumentFragment();
+                const label = document.createElement('span');
+                label.style.cssText = 'font-size:11px;color:var(--text-secondary);width:100%;text-align:center;margin-bottom:2px';
+                label.textContent = 'Historico de alvos:';
+                fragment.appendChild(label);
+
+                history.slice(-10).reverse().forEach(target => {
+                    const chip = document.createElement('button');
+                    chip.className = 'target-chip';
+                    chip.textContent = target;
+                    chip.onclick = () => {
+                        document.getElementById('alvo').value = target;
+                    };
+                    fragment.appendChild(chip);
+                });
+
+                container.innerHTML = '';
+                container.appendChild(fragment);
+            }
+        }
+
+        /* ============================================
+           CLASSE: MonitorManager
+           Motor de busca com retry, cache e multi-alvo
+           ============================================ */
+        class MonitorManager {
+            constructor(toast, cache, sentiment, ui) {
+                this.toast = toast;
+                this.cache = cache;
+                this.sentiment = sentiment;
+                this.ui = ui;
+                this.loopInterval = null;
+                this.countdownInterval = null;
+                this.intervalSeconds = 60;
+                this.remainingSeconds = 0;
+                this.isRunning = false;
+                this.siren = new Audio(SIREN_URL);
+            }
+
+            /** Busca dados da API com retry */
+            async fetchWithRetry(url, retries = MAX_RETRIES) {
+                for (let attempt = 1; attempt <= retries; attempt++) {
+                    try {
+                        const res = await fetch(url);
+                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                        return await res.json();
+                    } catch (err) {
+                        if (attempt === retries) {
+                            console.error(`Falha apos ${retries} tentativas:`, err);
+                            return null;
+                        }
+                        // Espera progressiva entre tentativas
+                        await new Promise(r => setTimeout(r, 1000 * attempt));
+                    }
+                }
+                return null;
+            }
+
+            /** Captura dados de um alvo/rede */
+            async fetchData(alvo, rede = '') {
+                let query = rede ? `${alvo} site:${rede}` : alvo;
+                const periodo = document.getElementById('periodo').value;
+                if (periodo) query += ` when:${periodo}`;
+
+                const cacheKey = `fetch_${query}`;
+                const cached = this.cache.get(cacheKey);
+                if (cached) return cached;
+
+                const api = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(
+                    `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=pt-BR&gl=BR&ceid=BR:pt`
+                )}`;
+
+                const json = await this.fetchWithRetry(api);
+                const items = (json && json.items) || [];
+                this.cache.set(cacheKey, items);
+                return items;
+            }
+
+            /** Executa um ciclo de monitoramento */
+            async cycle() {
+                const alvoInput = document.getElementById('alvo').value.trim();
+                if (!alvoInput) return;
+
+                // Multi-alvo: separa por virgula
+                const alvos = alvoInput.split(',').map(a => a.trim()).filter(Boolean);
+
+                document.getElementById('status').textContent = 'Sincronizando com redes sociais e portais...';
+                this.ui.showSkeletons(4);
+
+                const bar = document.getElementById('progressBar');
+                bar.style.transition = 'none';
+                bar.style.width = '0%';
+
+                const redes = ['', 'youtube.com', 'x.com', 'instagram.com', 'facebook.com'];
+                let novaEncontrada = false;
+                let ultimaMsg = '';
+
+                // Busca todos os alvos e redes em paralelo
+                const allPromises = [];
+                for (const alvo of alvos) {
+                    for (const rede of redes) {
+                        allPromises.push(this.fetchData(alvo, rede));
+                    }
+                }
+
+                const allResults = await Promise.all(allPromises);
+
+                allResults.flat().forEach(item => {
+                    if (!item || !item.link) return;
+                    if (app.db.find(ex => ex.link === item.link)) return;
+
+                    const dataFormatada = new Date(item.pubDate).toLocaleDateString('pt-BR', {
+                        day: '2-digit', month: 'long', year: 'numeric'
+                    });
+
+                    const fonte = item.link.includes('youtube') ? 'YouTube' :
+                                  item.link.includes('x.com') ? 'X' :
+                                  item.link.includes('instagram') ? 'Instagram' :
+                                  item.link.includes('facebook') ? 'Facebook' : 'Portal News';
+
+                    app.db.push({
+                        titulo: item.title || 'Sem titulo',
                         link: item.link,
                         data: dataFormatada,
-                        sentimento: processarSentimento(item.title),
-                        fonte: item.link.includes("youtube") ? "YouTube" : item.link.includes("x.com") ? "X" : item.link.includes("instagram") ? "Instagram" : item.link.includes("facebook") ? "Facebook" : "Portal News"
+                        sentimento: this.sentiment.analyze(item.title || ''),
+                        fonte: fonte
                     });
+
                     novaEncontrada = true;
-                    ultimaMsg = item.title;
-                }
-            });
+                    ultimaMsg = item.title || '';
+                });
 
-            if (novaEncontrada) {
-                localStorage.setItem("db_monitoramento", JSON.stringify(db));
-                atualizarPainel();
-                somSirene.play().catch(() => {});
-                if (Notification.permission === "granted") {
-                    new Notification("✨ Nova Atualização OSINT", {
-                        body: ultimaMsg,
-                        icon: "https://zeus-rr.github.io/osint/simbolo.ico"
-                    });
+                if (novaEncontrada) {
+                    localStorage.setItem(DB_KEY, JSON.stringify(app.db));
+
+                    // Tocar sirene se som ativado
+                    if (app.soundEnabled) {
+                        try {
+                            this.siren.currentTime = 0;
+                            this.siren.play().catch(() => {});
+                        } catch {}
+                    }
+
+                    // Notificacao do navegador
+                    if (Notification.permission === 'granted') {
+                        new Notification('Nova Atualizacao OSINT', {
+                            body: ultimaMsg,
+                            icon: 'https://zeus-rr.github.io/osint/simbolo.ico'
+                        });
+                    }
+
+                    this.toast.success(`${app.db.length} noticias monitoradas. Novas encontradas!`);
+                } else {
+                    this.toast.info('Nenhuma noticia nova encontrada neste ciclo.');
+                }
+
+                this.ui.render();
+
+                // Atualizar indicador de ultima atualizacao
+                const now = new Date();
+                document.getElementById('lastUpdate').textContent =
+                    `Ultima atualizacao: ${now.toLocaleTimeString('pt-BR')}`;
+
+                document.getElementById('status').textContent = 'Monitoramento em Tempo Real Ativo';
+
+                // Reiniciar barra de progresso
+                setTimeout(() => {
+                    bar.style.transition = `width ${this.intervalSeconds}s linear`;
+                    bar.style.width = '100%';
+                }, 100);
+
+                // Reiniciar contagem regressiva
+                this.startCountdown();
+            }
+
+            /** Inicia o monitoramento */
+            start() {
+                const alvoInput = document.getElementById('alvo').value.trim();
+                if (!alvoInput) {
+                    this.toast.warning('Defina pelo menos um alvo!');
+                    return;
+                }
+
+                // Salvar alvos no historico
+                const alvos = alvoInput.split(',').map(a => a.trim()).filter(Boolean);
+                const history = JSON.parse(localStorage.getItem(TARGETS_KEY) || '[]');
+                alvos.forEach(a => {
+                    if (!history.includes(a)) history.push(a);
+                });
+                // Manter apenas os ultimos 20
+                while (history.length > 20) history.shift();
+                localStorage.setItem(TARGETS_KEY, JSON.stringify(history));
+
+                // Solicitar permissao de notificacao
+                if ('Notification' in window && Notification.permission === 'default') {
+                    Notification.requestPermission();
+                }
+
+                // "Acordar" audio na interacao do usuario
+                if (app.soundEnabled) {
+                    this.siren.play().then(() => this.siren.pause()).catch(() => {});
+                }
+
+                // Intervalo customizavel
+                const intervalInput = parseInt(document.getElementById('intervalo').value) || 60;
+                this.intervalSeconds = Math.max(10, Math.min(600, intervalInput));
+                document.getElementById('intervalo').value = this.intervalSeconds;
+
+                // Parar loop anterior se existir
+                this.stop(true);
+
+                document.getElementById('timerContainer').style.display = 'block';
+                this.isRunning = true;
+
+                // Primeiro ciclo imediato
+                this.cycle();
+
+                // Loop de monitoramento
+                this.loopInterval = setInterval(() => this.cycle(), this.intervalSeconds * 1000);
+
+                this.toast.info(`Monitoramento iniciado (${alvos.join(', ')}) - intervalo: ${this.intervalSeconds}s`);
+            }
+
+            /** Para o monitoramento */
+            stop(silent = false) {
+                if (this.loopInterval) {
+                    clearInterval(this.loopInterval);
+                    this.loopInterval = null;
+                }
+                if (this.countdownInterval) {
+                    clearInterval(this.countdownInterval);
+                    this.countdownInterval = null;
+                }
+                this.isRunning = false;
+                document.getElementById('countdown').textContent = '';
+                document.getElementById('status').textContent = '';
+                if (!silent) this.toast.info('Monitoramento pausado.');
+            }
+
+            /** Inicia a contagem regressiva para o proximo ciclo */
+            startCountdown() {
+                if (this.countdownInterval) clearInterval(this.countdownInterval);
+                this.remainingSeconds = this.intervalSeconds;
+
+                const countdownEl = document.getElementById('countdown');
+                countdownEl.textContent = `Proximo ciclo: ${this.remainingSeconds}s`;
+
+                this.countdownInterval = setInterval(() => {
+                    this.remainingSeconds--;
+                    if (this.remainingSeconds <= 0) {
+                        countdownEl.textContent = 'Atualizando...';
+                        clearInterval(this.countdownInterval);
+                    } else {
+                        countdownEl.textContent = `Proximo ciclo: ${this.remainingSeconds}s`;
+                    }
+                }, 1000);
+            }
+        }
+
+        /* ============================================
+           CLASSE: OpInfoApp
+           Classe principal que orquestra todo o sistema
+           ============================================ */
+        class OpInfoApp {
+            constructor() {
+                this.toast = new ToastManager('toast-container');
+                this.auth = new AuthManager(this.toast);
+                this.cache = new CacheManager(CACHE_TTL_MS);
+                this.sentiment = new SentimentAnalyzer();
+                this.ui = new UIManager(this.toast);
+                this.monitor = new MonitorManager(this.toast, this.cache, this.sentiment, this.ui);
+                this.db = [];
+                this.soundEnabled = true;
+            }
+
+            /** Inicializa o app apos login */
+            init() {
+                // Carregar dados persistidos
+                try {
+                    this.db = JSON.parse(localStorage.getItem(DB_KEY) || '[]');
+                } catch {
+                    this.db = [];
+                }
+
+                // Carregar preferencias
+                this.loadTheme();
+                this.loadSound();
+                this.ui.render();
+            }
+
+            /** Verifica sessao ao carregar */
+            checkSession() {
+                if (this.auth.isSessionValid()) {
+                    document.getElementById('loginScreen').style.display = 'none';
+                    this.init();
+                } else {
+                    // Sessao expirada, limpar
+                    localStorage.removeItem(SESSION_KEY);
+                }
+                // Aplicar tema mesmo na tela de login
+                this.loadTheme();
+            }
+
+            /** Carrega o tema salvo */
+            loadTheme() {
+                const savedTheme = localStorage.getItem(THEME_KEY) || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+                const btn = document.getElementById('btnDarkMode');
+                btn.innerHTML = savedTheme === 'dark' ? '&#9788;' : '&#9789;';
+                btn.classList.toggle('active', savedTheme === 'dark');
+
+                // Destruir e recriar grafico para aplicar cores
+                if (this.ui.chart) {
+                    this.ui.chart.destroy();
+                    this.ui.chart = null;
+                    this.ui.render();
                 }
             }
 
-            document.getElementById("status").innerText = "⏳ Monitoramento em Tempo Real Ativo";
-            setTimeout(() => {
-                bar.style.transition = 'width 60s linear';
-                bar.style.width = '100%';
-            }, 100);
-        }
+            /** Alterna dark mode */
+            toggleDarkMode() {
+                const current = document.documentElement.getAttribute('data-theme');
+                const next = current === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', next);
+                localStorage.setItem(THEME_KEY, next);
 
-        /* --- COMANDOS DE SISTEMA --- */
-        function iniciarSistema() {
-            if (!document.getElementById("alvo").value) return alert("Defina um alvo!");
+                const btn = document.getElementById('btnDarkMode');
+                btn.innerHTML = next === 'dark' ? '&#9788;' : '&#9789;';
+                btn.classList.toggle('active', next === 'dark');
 
-            if ("Notification" in window) Notification.requestPermission();
-            somSirene.play().then(() => {
-                somSirene.pause();
-                somSirene.currentTime = 0;
-            });
+                // Recriar grafico com novas cores
+                if (this.ui.chart) {
+                    this.ui.chart.destroy();
+                    this.ui.chart = null;
+                    this.ui.render();
+                }
 
-            document.querySelector(".timer-container").style.display = "block";
-            if (loopMonitor) clearInterval(loopMonitor);
-            ciclo();
-            loopMonitor = setInterval(ciclo, 60000);
-        }
+                this.toast.info(next === 'dark' ? 'Tema escuro ativado.' : 'Tema claro ativado.');
+            }
 
-        function limparHistorico() {
-            if (confirm("Tem certeza que deseja apagar todos os registros do monitoramento?")) {
-                db = [];
-                localStorage.removeItem("db_monitoramento");
-                atualizarPainel();
+            /** Carrega preferencia de som */
+            loadSound() {
+                const saved = localStorage.getItem(SOUND_KEY);
+                this.soundEnabled = saved !== 'off';
+                this.updateSoundButton();
+            }
+
+            /** Alterna som on/off */
+            toggleSound() {
+                this.soundEnabled = !this.soundEnabled;
+                localStorage.setItem(SOUND_KEY, this.soundEnabled ? 'on' : 'off');
+                this.updateSoundButton();
+                this.toast.info(this.soundEnabled ? 'Som ativado.' : 'Som desativado.');
+            }
+
+            /** Atualiza icone do botao de som */
+            updateSoundButton() {
+                const btn = document.getElementById('btnSound');
+                btn.innerHTML = this.soundEnabled ? '&#128264;' : '&#128263;';
+                btn.classList.toggle('active', this.soundEnabled);
+            }
+
+            /** Limpa todos os dados */
+            clearData() {
+                if (!confirm('Tem certeza que deseja apagar todos os registros?')) return;
+                this.db = [];
+                localStorage.removeItem(DB_KEY);
+                this.cache.clear();
+                this.ui.currentPage = 1;
+                this.ui.render();
+                this.toast.success('Dados limpos com sucesso.');
+            }
+
+            /** Exporta dados como CSV */
+            exportCSV() {
+                if (this.db.length === 0) {
+                    this.toast.warning('Nenhum dado para exportar.');
+                    return;
+                }
+
+                const header = 'Titulo,Sentimento,Fonte,Data,Link\n';
+                const rows = this.db.map(n => {
+                    const titulo = `"${n.titulo.replace(/"/g, '""')}"`;
+                    return `${titulo},${n.sentimento},${n.fonte},"${n.data}",${n.link}`;
+                }).join('\n');
+
+                this.downloadFile(header + rows, 'opinfo_news_export.csv', 'text/csv;charset=utf-8;');
+                this.toast.success('CSV exportado com sucesso.');
+            }
+
+            /** Exporta dados como JSON */
+            exportJSON() {
+                if (this.db.length === 0) {
+                    this.toast.warning('Nenhum dado para exportar.');
+                    return;
+                }
+
+                const json = JSON.stringify(this.db, null, 2);
+                this.downloadFile(json, 'opinfo_news_export.json', 'application/json');
+                this.toast.success('JSON exportado com sucesso.');
+            }
+
+            /** Utilitario para download de arquivo */
+            downloadFile(content, filename, mimeType) {
+                const blob = new Blob(['\uFEFF' + content], { type: mimeType });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
             }
         }
-		
-		// Bloquear clique direito
-document.addEventListener('contextmenu', event => event.preventDefault());
 
-// Bloquear atalhos de desenvolvedor (F12, Ctrl+Shift+I, Ctrl+U)
-document.onkeydown = function(e) {
-    if (e.keyCode == 123 || 
-        (e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) || e.keyCode == 'J'.charCodeAt(0))) || 
-        (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0))) {
-        return false;
-    }
-};
+        /* ============================================
+           INICIALIZACAO
+           ============================================ */
+        const app = new OpInfoApp();
+        // Expor globalmente para os onclick no HTML
+        window.app = app;
 
-        if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("sw.js");
+        // Verificar sessao ao carregar
+        window.addEventListener('DOMContentLoaded', () => app.checkSession());
+
+        // Registrar Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => {});
         }
+
+    })();
     </script>
 </body>
-
 </html>
